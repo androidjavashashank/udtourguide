@@ -1,4 +1,4 @@
-package edu.udel.eleg.eleg654.UDTourGuide;
+package edu.udel.eleg.eleg654.udtourguide;
 
 import android.location.Location;
 

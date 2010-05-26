@@ -1,4 +1,4 @@
-package edu.udel.eleg.eleg654.UDTourGuide;
+package edu.udel.eleg.eleg654.udtourguide;
 
 import java.io.FileInputStream;
 import java.util.ConcurrentModificationException;
@@ -29,6 +29,8 @@ import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.skyhookwireless.wps.WPSLocation;
+
+import edu.udel.eleg.eleg654.UDTourGuide.R;
 
 public class TourGuideActivity extends MapActivity
 {

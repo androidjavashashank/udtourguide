@@ -1,4 +1,4 @@
-package edu.udel.eleg.eleg654.UDTourGuide;
+package edu.udel.eleg.eleg654.udtourguide;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -33,6 +33,8 @@ import com.skyhookwireless.wps.WPSLocation;
 import com.skyhookwireless.wps.WPSPeriodicLocationCallback;
 import com.skyhookwireless.wps.WPSReturnCode;
 import com.skyhookwireless.wps.XPS;
+
+import edu.udel.eleg.eleg654.UDTourGuide.R;
 
 /**
  * 
