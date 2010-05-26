@@ -4,7 +4,7 @@ import android.location.Location;
 
 /**
  * Class that encapsulates a point of interest. It contains the following important information: point of interest' name, location and
- * radius fps points, radius distance, file, and triggered status for a point of interest. It attempts to follow the immutable design
+ * radius GPS points, radius distance, file to play back, and triggered status for a point of interest. It attempts to follow the immutable design
  * pattern where possible.
  * 
  * @author Aaron Myles Landwehr
@@ -28,7 +28,7 @@ final class PointOfInterest
 	 */
 	final Location gpsCenterPoint;
 	/**
-	 * The radius in meters between the two gps points.
+	 * The radius in meters between the two GPS points.
 	 */
 	final float radius;
 	/**
