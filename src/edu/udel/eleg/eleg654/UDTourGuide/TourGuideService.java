@@ -453,7 +453,7 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 		});
 	}
 
-	void showDialogProgress(final String text, final int amount, final int total)
+	void showDialogProgress(final String text, final int progress, final int max)
 	{
 		tourGuideActivity.handler.post(new Runnable()
 		{
@@ -461,9 +461,16 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			public void run()
 			{
 				TourGuideStatics.DIALOG_PROGRESS_TEXT = text;
-				TourGuideStatics.DIALOG_PROGRESS_AMOUNT = amount;
-				TourGuideStatics.DIALOG_PROGRESS_TOTAL = total;
+				TourGuideStatics.DIALOG_PROGRESS_PROGRESS = progress;
+				TourGuideStatics.DIALOG_PROGRESS_MAX = max;
 				tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS);
+				
+				//FIXME: Below is for the Android 2.2 API.
+				//Bundle args = new Bundle();
+				//args.putString(TourGuideStatics.KEY_TEXT, text);
+				//args.putInt(TourGuideStatics.KEY_PROGRESS, progress);
+				//args.putInt(TourGuideStatics.KEY_MAX, max);
+				//tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS, args);
 			}
 		});
 	}
@@ -478,6 +485,11 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			{
 				TourGuideStatics.DIALOG_PROGRESS_TEXT = text;
 				tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
+				
+				//FIXME: Below is for the Android 2.2 API.
+				//Bundle args = new Bundle();
+				//args.putString(TourGuideStatics.KEY_TEXT, text);
+				//tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE, args);
 			}
 		});
 	}

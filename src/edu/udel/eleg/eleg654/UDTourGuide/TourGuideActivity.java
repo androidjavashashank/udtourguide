@@ -153,8 +153,9 @@ public class TourGuideActivity extends MapActivity
 			bindService(new Intent(this, TourGuideService.class), connectionToMyService, BIND_AUTO_CREATE);
 		}
 	}
-
+	
 	@Override
+	//FIXME: protected Dialog onCreateDialog(int id, Bundle args)
 	protected Dialog onCreateDialog(int id)
 	{
 		Dialog dialog;
@@ -226,8 +227,11 @@ public class TourGuideActivity extends MapActivity
 				progressDialog.setCancelable(false);
 				progressDialog.setIndeterminate(false);
 				progressDialog.setMessage(TourGuideStatics.DIALOG_PROGRESS_TEXT);
-				progressDialog.setProgress(TourGuideStatics.DIALOG_PROGRESS_AMOUNT);
-				progressDialog.setMax(TourGuideStatics.DIALOG_PROGRESS_TOTAL);
+				progressDialog.setProgress(TourGuideStatics.DIALOG_PROGRESS_PROGRESS);
+				progressDialog.setMax(TourGuideStatics.DIALOG_PROGRESS_MAX);
+				//FIXME: progressDialog.setMessage(args.getString(TourGuideStatics.KEY_TEXT));
+				//FIXME: progressDialog.setProgress(args.getInt(TourGuideStatics.KEY_PROGRESS));
+				//FIXME: progressDialog.setMax(args.getInt(TourGuideStatics.KEY_MAX));
 				dialog = progressDialog;
 				break;
 			}
@@ -238,6 +242,7 @@ public class TourGuideActivity extends MapActivity
 				progressDialog.setCancelable(false);
 				progressDialog.setIndeterminate(true);
 				progressDialog.setMessage(TourGuideStatics.DIALOG_PROGRESS_TEXT);
+				//FIXME: progressDialog.setMessage(args.getString(TourGuideStatics.KEY_TEXT));
 				dialog = progressDialog;
 				break;
 			}
@@ -272,6 +277,7 @@ public class TourGuideActivity extends MapActivity
 	} 
 
 	@Override
+	//FIXME: protected void onPrepareDialog(int id, Dialog dialog, Bundle args)
 	protected void onPrepareDialog(int id, Dialog dialog)
 	{
 		switch (id)
@@ -309,13 +315,17 @@ public class TourGuideActivity extends MapActivity
 			case TourGuideStatics.DIALOG_PROGRESS:
 			{
 				((ProgressDialog) dialog).setMessage(TourGuideStatics.DIALOG_PROGRESS_TEXT);
-				((ProgressDialog) dialog).setProgress(TourGuideStatics.DIALOG_PROGRESS_AMOUNT);
-				((ProgressDialog) dialog).setMax(TourGuideStatics.DIALOG_PROGRESS_TOTAL);
+				((ProgressDialog) dialog).setProgress(TourGuideStatics.DIALOG_PROGRESS_PROGRESS);
+				((ProgressDialog) dialog).setMax(TourGuideStatics.DIALOG_PROGRESS_MAX);
+				//FIXME: ((ProgressDialog) dialog).setMessage(args.getString(TourGuideStatics.KEY_TEXT));
+				//FIXME: ((ProgressDialog) dialog).setProgress(args.getInt(TourGuideStatics.KEY_PROGRESS));
+				//FIXME: ((ProgressDialog) dialog).setMax(args.getInt(TourGuideStatics.KEY_MAX));
 				break;
 			}
 			case TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE:
 			{
 				((ProgressDialog) dialog).setMessage(TourGuideStatics.DIALOG_PROGRESS_TEXT);
+				//FIXME: ((ProgressDialog) dialog).setMessage(args.getString(TourGuideStatics.KEY_TEXT));
 				break;
 			}
 		}

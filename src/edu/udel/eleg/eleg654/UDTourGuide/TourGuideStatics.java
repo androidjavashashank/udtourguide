@@ -29,10 +29,18 @@ final public class TourGuideStatics
 	public static String DIALOG_BLURB_FILE;
 
 	public static String DIALOG_BLURB_LOCATION;
-
+	
 	public static String DIALOG_PROGRESS_TEXT;
 
-	public static int DIALOG_PROGRESS_AMOUNT;
+	public static int DIALOG_PROGRESS_PROGRESS;
 
-	public static int DIALOG_PROGRESS_TOTAL;
+	public static int DIALOG_PROGRESS_MAX;
+	
+	//Below is for the Android 2.2 API
+	
+	//FIXME: public static String KEY_TEXT = "text";
+	
+	//FIXME: public static String KEY_PROGRESS = "progress";
+	
+	//FIXME: public static String KEY_MAX = "max";
 }
