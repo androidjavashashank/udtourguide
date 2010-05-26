@@ -34,8 +34,6 @@ import com.skyhookwireless.wps.WPSPeriodicLocationCallback;
 import com.skyhookwireless.wps.WPSReturnCode;
 import com.skyhookwireless.wps.XPS;
 
-import edu.udel.eleg.eleg654.UDTourGuide.R;
-
 /**
  * 
  * @author Aaron Myles Landwehr

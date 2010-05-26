@@ -30,8 +30,6 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.skyhookwireless.wps.WPSLocation;
 
-import edu.udel.eleg.eleg654.UDTourGuide.R;
-
 public class TourGuideActivity extends MapActivity
 {
 	class MapOverlay extends com.google.android.maps.Overlay
