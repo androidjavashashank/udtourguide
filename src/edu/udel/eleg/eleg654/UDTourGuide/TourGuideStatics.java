@@ -1,5 +1,9 @@
 package edu.udel.eleg.eleg654.udtourguide;
 
+/**
+ *
+ * @author Aaron Myles Landwehr
+ */
 final public class TourGuideStatics
 {
 	public static String server = "http://www.snaphat.com:80/udtourguide/";

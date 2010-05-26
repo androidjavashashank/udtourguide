@@ -114,6 +114,14 @@ public class TourGuideActivity extends MapActivity
 		// TODO Auto-generated method stub
 		return false;
 	}
+	
+	void prefetchDialogs()
+	{
+		this.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
+		this.showDialog(TourGuideStatics.DIALOG_PROGRESS);
+		this.dismissDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
+		this.dismissDialog(TourGuideStatics.DIALOG_PROGRESS);
+	}
 
 	/** Called when the activity is first created. */
 	@Override
@@ -124,6 +132,7 @@ public class TourGuideActivity extends MapActivity
 		
 		if (savedInstanceState == null)
 		{
+			prefetchDialogs();
 			if (getFileStreamPath(TourGuideStatics.databaseFile).exists())
 			{
 				this.showDialog(TourGuideStatics.DIALOG_START);

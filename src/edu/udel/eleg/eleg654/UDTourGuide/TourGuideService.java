@@ -419,7 +419,7 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			{
 				trace = trace + elements[i].toString() + "\n\n";
 			}
-			//hideDialogProgressIndeterminate();
+			hideDialogProgressIndeterminate();
 			this.showDialogExit("Exception:\n" + e.toString() + "\n\n" + trace);
 		}
 	}
