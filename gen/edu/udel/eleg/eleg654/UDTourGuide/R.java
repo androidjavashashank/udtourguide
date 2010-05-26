@@ -5,7 +5,7 @@
  * should not be modified by hand.
  */
 
-package edu.udel.eleg.eleg654.UDTourGuide;
+package edu.udel.eleg.eleg654.udtourguide;
 
 public final class R {
     public static final class attr {

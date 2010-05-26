@@ -13,7 +13,6 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
-import android.app.Activity;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;

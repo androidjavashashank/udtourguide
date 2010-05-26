@@ -2,14 +2,11 @@ package edu.udel.eleg.eleg654.udtourguide;
 
 import java.io.FileInputStream;
 import java.util.ConcurrentModificationException;
-import java.util.List;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -27,7 +24,6 @@ import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
-import com.google.android.maps.Overlay;
 import com.skyhookwireless.wps.WPSLocation;
 
 public class TourGuideActivity extends MapActivity
