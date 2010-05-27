@@ -69,7 +69,7 @@ import com.skyhookwireless.wps.XPS;
  * 
  * @author Aaron Myles Landwehr
  */
-class TourGuideService extends Service implements WPSPeriodicLocationCallback, Runnable
+public class TourGuideService extends Service implements WPSPeriodicLocationCallback, Runnable
 {
 
 	/**

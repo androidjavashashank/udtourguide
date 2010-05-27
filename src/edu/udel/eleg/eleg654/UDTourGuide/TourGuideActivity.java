@@ -58,7 +58,7 @@ import com.skyhookwireless.wps.WPSLocation;
  * 
  * @author Aaron Myles Landwehr
  */
-class TourGuideActivity extends MapActivity
+public class TourGuideActivity extends MapActivity
 {
 	/**
 	 * This class allows us to implement map overlays on top of google maps. We use it to display points of interest and our current
