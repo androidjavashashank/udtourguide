@@ -2,7 +2,7 @@ package edu.udel.eleg.eleg654.udtourguide;
 
 import android.location.Location;
 
-/**
+/*
  * Copyright 2010 Aaron Myles Landwehr. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -28,12 +28,12 @@ import android.location.Location;
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of Aaron Myles Landwehr.
-*/
+ */
 
 /**
  * Class that encapsulates a point of interest. It contains the following important information: point of interest' name, location and
- * radius GPS points, radius distance, file to play back, and triggered status for a point of interest. It attempts to follow the immutable design
- * pattern where possible.
+ * radius GPS points, radius distance, file to play back, and triggered status for a point of interest. It attempts to follow the immutable
+ * design pattern where possible.
  * 
  * @author Aaron Myles Landwehr
  */

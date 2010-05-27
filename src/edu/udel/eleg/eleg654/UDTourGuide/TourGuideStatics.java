@@ -1,6 +1,6 @@
 package edu.udel.eleg.eleg654.udtourguide;
 
-/**
+/*
  * Copyright 2010 Aaron Myles Landwehr. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -29,11 +29,10 @@ package edu.udel.eleg.eleg654.udtourguide;
  */
 
 /**
- * Simple static variables needed throughout the project. The first two are the server path and
- * the database name. These two will always be needed. The rest are related to dialog usage
- * in the program. There are a number of entries that I consider to be hacks that won't be needed
- * when the Android 2.2 API is used.
- *
+ * Simple static variables needed throughout the project. The first two are the server path and the database name. These two will always be
+ * needed. The rest are related to dialog usage in the program. There are a number of entries that I consider to be hacks that won't be
+ * needed when the Android 2.2 API is used.
+ * 
  * @author Aaron Myles Landwehr
  */
 final public class TourGuideStatics
@@ -51,27 +50,25 @@ final public class TourGuideStatics
 	public static final int DIALOG_PROGRESS_INDETERMINATE = 3;
 
 	/**
-	 * Hackish way to get different dialog associated information to change when
-	 * onPrepareDialog() is called. We set this stuff before calling showDialog()
-	 *
-	 * In android 2.2 this is not needed because,
-	 * Android 2.2 allows Bundles of arguments to be passed to showDialog().
-	 * So we can pass data that way.
-	 *
-	 * Note: THIS COULD FAIL IF THESE STATICS WERE CHANGED BEFORE A DIALOG
-	 * WAS PROCESSED BY ANDROID.
+	 * Hackish way to get different dialog associated information to change when onPrepareDialog() is called. We set this stuff before
+	 * calling showDialog()
+	 * 
+	 * In android 2.2 this is not needed because, Android 2.2 allows Bundles of arguments to be passed to showDialog(). So we can pass data
+	 * that way.
+	 * 
+	 * Note: THIS COULD FAIL IF THESE STATICS WERE CHANGED BEFORE A DIALOG WAS PROCESSED BY ANDROID.
 	 */
-	public static String DIALOG_EXIT_TEXT;
-	public static String DIALOG_BLURB_FILE;
-	public static String DIALOG_BLURB_LOCATION;
-	public static String DIALOG_PROGRESS_TEXT;
-	public static int DIALOG_PROGRESS_PROGRESS;
-	public static int DIALOG_PROGRESS_MAX;
+	public static String DIALOG_EXIT_TEXT = "";
+	public static String DIALOG_BLURB_FILE = "";
+	public static String DIALOG_BLURB_LOCATION = "";
+	public static String DIALOG_PROGRESS_TEXT = "";
+	public static int DIALOG_PROGRESS_PROGRESS = 1;
+	public static int DIALOG_PROGRESS_MAX = 1;
 
 	/**
 	 * Below is for the Android 2.2 API. We ideally want to uses these in the future.
 	 */
-	//FIXME: public static String KEY_TEXT = "text";
-	//FIXME: public static String KEY_PROGRESS = "progress";
-	//FIXME: public static String KEY_MAX = "max";
+	// FIXME: public static String KEY_TEXT = "text";
+	// FIXME: public static String KEY_PROGRESS = "progress";
+	// FIXME: public static String KEY_MAX = "max";
 }

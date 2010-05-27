@@ -26,7 +26,7 @@ import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.skyhookwireless.wps.WPSLocation;
 
-/**
+/*
  * Copyright 2010 Aaron Myles Landwehr. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -52,7 +52,7 @@ import com.skyhookwireless.wps.WPSLocation;
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of Aaron Myles Landwehr.
-*/
+ */
 
 /**
  * 
@@ -60,19 +60,40 @@ import com.skyhookwireless.wps.WPSLocation;
  */
 public class TourGuideActivity extends MapActivity
 {
+	/**
+	 * This class allows us to implement map overlays on top of google maps. We use it to display points of interest and our current
+	 * location.
+	 */
 	class MapOverlay extends com.google.android.maps.Overlay
 	{
+		/**
+		 * Draw method that we override to display what we want to.
+		 * 
+		 * @param canvas
+		 *            The Canvas upon which to draw.
+		 * @param mapView
+		 *            the MapView that requested the draw.
+		 * @param shadow
+		 *            If true, draw the shadow layer. If false, draw the overlay contents.
+		 * @param when
+		 *            The timestamp of the draw.
+		 * 
+		 * @return True if you need to be drawn again right away; false otherwise. Default implementation returns false.
+		 */
 		@Override
 		public boolean draw(Canvas canvas, MapView mapView, boolean shadow, long when)
 		{
+			// call the mama.
 			super.draw(canvas, mapView, shadow);
-			WPSLocation location = null;
-			
-			if(tourGuideService != null)
-				location  = tourGuideService.getLocation();
 
+			// get the current location from our service.
+			WPSLocation location = tourGuideService.getLocation();
+
+			// make sure a location was already retrieved.
 			if (location != null)
 			{
+				// location was retrieved, so let us set it.
+
 				// get the GeoPoint representation of our location.
 				GeoPoint myGeoPointLocation = new GeoPoint((int) (location.getLatitude() * 1E6), (int) (location.getLongitude() * 1E6));
 
@@ -94,7 +115,7 @@ public class TourGuideActivity extends MapActivity
 
 			try
 			{
-				if(tourGuideService != null)
+				// for each point of interest in the database display circles on the map.
 				for (PointOfInterest destination : tourGuideService.getDatabase())
 				{
 
@@ -134,65 +155,97 @@ public class TourGuideActivity extends MapActivity
 			}
 			catch (ConcurrentModificationException e)
 			{
+				// we just use this guy, so allow concurrent modification, because the worst that can happen is that
+				// some points don't get displayed for one frame.
 				// just ignore it.
 			}
+
+			// redraw.
 			return true;
 		}
 	}
 
+	/**
+	 * Google requires this, because it wants to know 'for accounting purposes' whether or not you are currently displaying any route
+	 * information.
+	 */
 	@Override
 	protected boolean isRouteDisplayed()
 	{
-		// TODO Auto-generated method stub
+		// we are not displaying any routes.
 		return false;
 	}
-	
-	void prefetchDialogs()
-	{
-		this.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
-		this.showDialog(TourGuideStatics.DIALOG_PROGRESS);
-		this.dismissDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
-		this.dismissDialog(TourGuideStatics.DIALOG_PROGRESS);
-	}
 
-	/** Called when the activity is first created. */
+	/**
+	 * Called when our activity is created. This can occur on application start or orientation change. Or pretty much whenever Android feels
+	 * like it. We uses it to setup our map view and to show the start dialog if the program just started or to bind to our service if it
+	 * has already been created in the case where orientation changes occurred.
+	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
+		// call the papa.
 		super.onCreate(savedInstanceState);
+
+		// set our current content to be displayed.
 		setContentView(R.layout.main);
-		
+
+		// check to see if the application just started.
 		if (savedInstanceState == null)
 		{
+			// application just started.
+
+			// prefetch dialogs to avoid errors later.
 			prefetchDialogs();
+
+			// check if the DB exists and display start dialog if it does.
 			if (getFileStreamPath(TourGuideStatics.databaseFile).exists())
 			{
+				// DB exists, ask the user if they want to update it.
 				this.showDialog(TourGuideStatics.DIALOG_START);
 			}
 			else
 			{
+				// DB doesn't exist. Force install the database.
+
+				// set that we are updating.
 				this.isUpdate = true;
+
+				// start our service.
 				startService(new Intent(tourGuideActivity, TourGuideService.class));
+
+				// bind to our service so we can call it's methods later.
 				bindService(new Intent(tourGuideActivity, TourGuideService.class), connectionToMyService, BIND_AUTO_CREATE);
 
-				Toast toast = Toast.makeText(this,
-						"Local database hasn't been installed yet, downloading from the internet...", 0);
+				// pop a toast.
+				Toast toast = Toast.makeText(this, "Local database hasn't been installed yet, downloading from the internet...", 0);
 				toast.show();
 			}
 		}
 		else
 		{
+			// application didn't just start. We already have a running service.
+
+			// just bind to our service.
 			bindService(new Intent(this, TourGuideService.class), connectionToMyService, BIND_AUTO_CREATE);
 		}
 	}
-	
+
+	/**
+	 * This method allows us to manage what happens when android creates our dialogs. We use it to set things like texts, buttons, etc. We
+	 * current use a hack to create dynamic dialog text, etc because Android 2.1 and lower APIs have no way to give this guy information to
+	 * change the dialog. So instead we use static variables that are not thread safe.
+	 * 
+	 * Android 2.2. Solves this issue. This will be changed when I have access to a phone with API8.
+	 */
 	@Override
-	//FIXME: protected Dialog onCreateDialog(int id, Bundle args)
+	// FIXME: protected Dialog onCreateDialog(int id, Bundle args)
 	protected Dialog onCreateDialog(int id)
 	{
 		Dialog dialog;
 		switch (id)
 		{
+			// create our exit dialog.
 			case TourGuideStatics.DIALOG_EXIT:
 			{
 				AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
@@ -209,127 +262,217 @@ public class TourGuideActivity extends MapActivity
 				dialog = alertBuilder.create();
 				break;
 			}
+				// create our startup dialog.
 			case TourGuideStatics.DIALOG_START:
 			{
+				// use the alert dialog builder with our activity as the context.
 				AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
+
+				// make the dialog unable to be backed out of by the user.
 				alertBuilder.setCancelable(false);
+
+				// write the dialog message.
 				alertBuilder.setMessage("Welcome to UDTourGuide!\n" + "Do you want to update the database?\n(Requires Internet Access)");
+
+				// setup what happens when the Yes button is clicked.
 				alertBuilder.setPositiveButton("Yes", new OnClickListener()
 				{
+					/**
+					 * Code that is run when the button is clicked.
+					 */
 					@Override
 					public void onClick(DialogInterface arg0, int arg1)
 					{
+						// user asked for updates. to set it.
 						isUpdate = true;
+
+						// start our service.
 						startService(new Intent(tourGuideActivity, TourGuideService.class));
+
+						// bind to our service using our activity as the context.
 						bindService(new Intent(tourGuideActivity, TourGuideService.class), connectionToMyService, BIND_AUTO_CREATE);
 
+						// pop a toast.
 						Toast toast = Toast.makeText(tourGuideActivity,
 								"Don't worry, internet access is only needed for updates and google maps!", 0);
 						toast.show();
 					}
 				});
+
+				// setup what happens when the No button is clicked.
 				alertBuilder.setNegativeButton("No Thanks", new OnClickListener()
 				{
-
+					/**
+					 * Code that is run when the button is clicked.
+					 */
 					@Override
 					public void onClick(DialogInterface arg0, int arg1)
 					{
+						// user doesn't want updates. so unset it.
 						isUpdate = false;
+
+						// start our service.
 						startService(new Intent(tourGuideActivity, TourGuideService.class));
+
+						// bind to our service using our activity as the context.
 						bindService(new Intent(tourGuideActivity, TourGuideService.class), connectionToMyService, BIND_AUTO_CREATE);
 					}
 				});
+
+				// actually create the dialog from the builder.
 				dialog = alertBuilder.create();
 				break;
 			}
+				// create our blurb dialog.
 			case TourGuideStatics.DIALOG_BLURB:
 			{
+				// use the alert dialog builder to create our alert dialog.
 				AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
+
+				// make the alert dialog not backoutable.
 				alertBuilder.setCancelable(false);
-				alertBuilder.setMessage("test");
+
+				// set a default message- we need this to be before creation.
+				alertBuilder.setMessage("");
+
+				// tell the builder we want a play button- don't worry, we setup
+				// its callback in onPrepareDialog().
 				alertBuilder.setPositiveButton("Play", null);
+
+				// tell the builder we want a No button- don't worry, we setup
+				// its callback in onPrepareDialog().
 				alertBuilder.setNegativeButton("No Thanks", null);
+
+				// create the alert dialog.
 				dialog = alertBuilder.create();
 				break;
 			}
+				// create our determinate progress dialog. i.e. x out of 100.
 			case TourGuideStatics.DIALOG_PROGRESS:
 			{
+				// create a new progress dialog.
 				ProgressDialog progressDialog = new ProgressDialog(tourGuideActivity);
+
+				// set its style determinate with a horizontal progress bar.
 				progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+
+				// make it non-cancelable.
 				progressDialog.setCancelable(false);
+
+				// make sure it's not indeterminate(otherwise we get a progress bar that never fills in).
 				progressDialog.setIndeterminate(false);
+
+				// setup the text of our message- though we have to do it again in onPrepareDialog() anyway.
 				progressDialog.setMessage(TourGuideStatics.DIALOG_PROGRESS_TEXT);
+
+				// setup the progress we've made- though we have to do it again in onPrepareDialog() anyway.
 				progressDialog.setProgress(TourGuideStatics.DIALOG_PROGRESS_PROGRESS);
+
+				// setup the total so android knows our precentage done- though we have to do it again in onPrepareDialog() anyway.
 				progressDialog.setMax(TourGuideStatics.DIALOG_PROGRESS_MAX);
-				//FIXME: progressDialog.setMessage(args.getString(TourGuideStatics.KEY_TEXT));
-				//FIXME: progressDialog.setProgress(args.getInt(TourGuideStatics.KEY_PROGRESS));
-				//FIXME: progressDialog.setMax(args.getInt(TourGuideStatics.KEY_MAX));
+
+				// Android 2.2 stuff below:
+				// FIXME: progressDialog.setMessage(args.getString(TourGuideStatics.KEY_TEXT));
+				// FIXME: progressDialog.setProgress(args.getInt(TourGuideStatics.KEY_PROGRESS));
+				// FIXME: progressDialog.setMax(args.getInt(TourGuideStatics.KEY_MAX));
+
+				// set the dialog to return to our newly created progress dialog.
 				dialog = progressDialog;
 				break;
 			}
+				// create our indeterminate progress dialog.
 			case TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE:
 			{
+				// create a new progress dialog.
 				ProgressDialog progressDialog = new ProgressDialog(tourGuideActivity);
+
+				// set it to the spinner looking one(which is only indeterminate afaik).
 				progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+
+				// make it uncancelable.
 				progressDialog.setCancelable(false);
+
+				// make it indeterminate for good measure.
 				progressDialog.setIndeterminate(true);
+
+				// set the text- even though we have to do this in onPrepareDialog() again anyway.
 				progressDialog.setMessage(TourGuideStatics.DIALOG_PROGRESS_TEXT);
-				//FIXME: progressDialog.setMessage(args.getString(TourGuideStatics.KEY_TEXT));
+
+				// Android 2.2 stuff below:
+				// FIXME: progressDialog.setMessage(args.getString(TourGuideStatics.KEY_TEXT));
+
+				// set the dialog to return our newly created progress dialog.
 				dialog = progressDialog;
 				break;
 			}
 			default:
 			{
+				// WTF: who could this non existent dialog?
 				dialog = null;
 			}
 		}
+
+		// return our newly created dialog.
 		return dialog;
 	}
-	
+
+	/**
+	 * This callback is called everytime the Android activity gets destroyed. Which, is quite often. We use to detect when the back button
+	 * has been pressed in which case we end our app so that we don't wast the GPS.
+	 */
 	@Override
 	protected void onDestroy()
 	{
 		super.onDestroy();
-		//if(mapView != null)
-		//{
-		//	mapView.getOverlays().clear();
-		//	mapView.invalidate();
-		//}
-		if(isFinishing())
+
+		// is the application about to die?
+		if (isFinishing())
 		{
+			// Red warrior is about to die!
 			System.exit(0);
 		}
 	}
 
+	/**
+	 * This method allows us to manage what happens after showDialog() is called. We use it to modify the text and some other things in our
+	 * dialogs. I.e. we have dynamic dialogs.
+	 * 
+	 * We current use a hack to create dynamic dialog text, etc because Android 2.1 and lower APIs have no way to give this guy information
+	 * to change the dialog. So instead we use static variables that are not thread safe.
+	 * 
+	 * Android 2.2. Solves this issue. This will be changed when I have access to a phone with API8.
+	 */
 	@Override
-	protected void onUserLeaveHint()
-	{ 
-	   super.onUserLeaveHint(); 
-	   System.exit(0);
-	} 
-
-	@Override
-	//FIXME: protected void onPrepareDialog(int id, Dialog dialog, Bundle args)
+	// FIXME: protected void onPrepareDialog(int id, Dialog dialog, Bundle args)
 	protected void onPrepareDialog(int id, Dialog dialog)
 	{
 		switch (id)
 		{
+			// if we are showing an exit dialog.
 			case TourGuideStatics.DIALOG_EXIT:
 			{
+				// just reset the message.
 				((AlertDialog) dialog).setMessage(TourGuideStatics.DIALOG_EXIT_TEXT);
 				break;
 			}
+				// if we are showing a blurb dialog.
 			case TourGuideStatics.DIALOG_BLURB:
 			{
+				// reset the message to say about the new location we are near.
 				((AlertDialog) dialog).setMessage("Near '" + TourGuideStatics.DIALOG_BLURB_LOCATION + "'\nPlay blurb?");
+
+				// setup the code to run when the play button is clicked.
 				((AlertDialog) dialog).setButton("Play", new OnClickListener()
 				{
-
+					/**
+					 * code to run.
+					 */
 					@Override
 					public void onClick(DialogInterface arg0, int arg1)
 					{
 						try
 						{
+							// reset the media player associated with this activity and play the file.
 							mediaPlayer.reset();
 							mediaPlayer.setDataSource(new FileInputStream(tourGuideActivity
 									.getFileStreamPath(TourGuideStatics.DIALOG_BLURB_FILE)).getFD());
@@ -344,60 +487,153 @@ public class TourGuideActivity extends MapActivity
 				});
 				break;
 			}
+				// if we are showing a determinate progress dialog.
 			case TourGuideStatics.DIALOG_PROGRESS:
 			{
+				// reset the text.
 				((ProgressDialog) dialog).setMessage(TourGuideStatics.DIALOG_PROGRESS_TEXT);
+
+				// reset the progress.
 				((ProgressDialog) dialog).setProgress(TourGuideStatics.DIALOG_PROGRESS_PROGRESS);
+
+				// reset the max
 				((ProgressDialog) dialog).setMax(TourGuideStatics.DIALOG_PROGRESS_MAX);
-				//FIXME: ((ProgressDialog) dialog).setMessage(args.getString(TourGuideStatics.KEY_TEXT));
-				//FIXME: ((ProgressDialog) dialog).setProgress(args.getInt(TourGuideStatics.KEY_PROGRESS));
-				//FIXME: ((ProgressDialog) dialog).setMax(args.getInt(TourGuideStatics.KEY_MAX));
+
+				// Android 2.2 stuff below:
+				// FIXME: ((ProgressDialog) dialog).setMessage(args.getString(TourGuideStatics.KEY_TEXT));
+				// FIXME: ((ProgressDialog) dialog).setProgress(args.getInt(TourGuideStatics.KEY_PROGRESS));
+				// FIXME: ((ProgressDialog) dialog).setMax(args.getInt(TourGuideStatics.KEY_MAX));
 				break;
 			}
+				// if we are showing an indeterminate progress dialog.
 			case TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE:
 			{
+				// set the text.
 				((ProgressDialog) dialog).setMessage(TourGuideStatics.DIALOG_PROGRESS_TEXT);
-				//FIXME: ((ProgressDialog) dialog).setMessage(args.getString(TourGuideStatics.KEY_TEXT));
+
+				// Android 2.2 stuff below:
+				// FIXME: ((ProgressDialog) dialog).setMessage(args.getString(TourGuideStatics.KEY_TEXT));
 				break;
 			}
 		}
 	}
 
-	private MediaPlayer mediaPlayer = new MediaPlayer();
-	Handler handler = new Handler();
-	private TourGuideActivity tourGuideActivity = this;
-	private boolean isUpdate;
-	private TourGuideService tourGuideService;
+	/**
+	 * This callback is called when the user hits the home button. We are killing the app if that occurs because I don't think it is useful
+	 * running in the back- ground, nor do I think the Activity life-cycle necessarily makes sense.
+	 */
+	@Override
+	protected void onUserLeaveHint()
+	{
+		super.onUserLeaveHint();
 
+		// Blue warrior needs food badly!
+		System.exit(0);
+	}
+
+	/**
+	 * we use this to prefetch our progress dialogs, because we don't want Android throwing errors if we attempt to dismiss a dialog we've
+	 * never shown(it wouldn't have been created yet). This way it is created always.
+	 */
+	void prefetchDialogs()
+	{
+		// show the progress dialogs
+		this.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
+		this.showDialog(TourGuideStatics.DIALOG_PROGRESS);
+
+		// dismiss the progress dialogs.
+		this.dismissDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
+		this.dismissDialog(TourGuideStatics.DIALOG_PROGRESS);
+	}
+
+	/**
+	 * Callback class that occurs everytime we bind to a service(because we pass a reference to the instance of this class when binding). We
+	 * use it to start up our service to do work(update and process it's database) as well as initialize map overlays to be displayed on
+	 * google maps.
+	 */
 	private ServiceConnection connectionToMyService = new ServiceConnection()
 	{
-
+		/**
+		 * callback method that occurs when the service is connected.
+		 */
 		@Override
 		public void onServiceConnected(ComponentName componentName, IBinder iBinder)
 		{
+			// get a reference to our service.
 			tourGuideService = ((TourGuideService.LocalBinder) iBinder).getService();
-			
+
+			// set whether or not our service is to update the local DB.
 			tourGuideService.setUpdate(isUpdate);
+
+			// give the service our current context.
 			tourGuideService.setActivity(tourGuideActivity);
+
+			// start the service into processing it's database.
+			// note: the service was created prior to us connecting to it,
+			// we create this start() method ourselves simply to fork a thread
+			// for updates.
 			tourGuideService.start();
-			
+
+			// get the map view from the resource id.
 			MapView mapView = (MapView) findViewById(R.id.mapView);
 
+			// set the map to use its built in zoom controls so we can zoom.
 			mapView.setBuiltInZoomControls(true);
+
+			// set the map to be clickable otherwise we can't click the zoom controls
+			// or move around.
 			mapView.setClickable(true);
 
+			// get the map controller to zoom in as far as possible.
 			MapController mapControl = mapView.getController();
 			mapControl.setZoom(21);
 
+			// create a map overlay.
 			MapOverlay mapOverlay = new MapOverlay();
+
+			// clear any current overlays(they may be associated with a previous instance
+			// of our activity because of orientation change, etc- so we make sure to clear
+			// them.
 			mapView.getOverlays().clear();
+
+			// add our new map overlay.
 			mapView.getOverlays().add(mapOverlay);
 		}
 
+		/**
+		 * Callback method that occurs when our service is disconnected. We don't use this be are required to Override it.
+		 */
 		@Override
 		public void onServiceDisconnected(ComponentName componentName)
 		{
+			// set the service to null.
 			tourGuideService = null;
 		}
 	};
+
+	/**
+	 * message handler we use to run Runnable code that is sent from other threads. Currently used to display dialogs and play sounds.
+	 */
+	Handler handler = new Handler();
+
+	/**
+	 * Whether or not to update the database. Sent to our service once we bind to it.
+	 */
+	private boolean isUpdate;
+
+	/**
+	 * media player we use to play sounds with.
+	 */
+	private MediaPlayer mediaPlayer = new MediaPlayer();
+
+	/**
+	 * Reference to our activity and context so that our inner classes can use it.
+	 */
+	private TourGuideActivity tourGuideActivity = this;
+
+	/**
+	 * Reference to the service so that we can directly call its methods. We basically need to start it via its start() method and get the
+	 * current location from it as well as points of interests to draw.
+	 */
+	private TourGuideService tourGuideService;
 }

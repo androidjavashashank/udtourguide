@@ -10,7 +10,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,7 +33,7 @@ import com.skyhookwireless.wps.WPSPeriodicLocationCallback;
 import com.skyhookwireless.wps.WPSReturnCode;
 import com.skyhookwireless.wps.XPS;
 
-/**
+/*
  * Copyright 2010 Aaron Myles Landwehr. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -61,37 +60,35 @@ import com.skyhookwireless.wps.XPS;
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of Aaron Myles Landwehr.
  */
+
 /**
- * This Service provides the backend functionality for the program. This includes basically any
- * work that isn't related to the GUI. First, it handles location updates through the use of the 
- * skyhook API. Using the location updates, It checks to see if we have intersected with points of
- * interests and pushes a notification back to the user if we have via dialog that is managed by the 
- * activity. It also implements the functionality for database updates.
- *
+ * This Service provides the backend functionality for the program. This includes basically any work that isn't related to the GUI. First,
+ * it handles location updates through the use of the skyhook API. Using the location updates, It checks to see if we have intersected with
+ * points of interests and pushes a notification back to the user if we have via dialog that is managed by the activity. It also implements
+ * the functionality for database updates.
+ * 
  * @author Aaron Myles Landwehr
  */
 public class TourGuideService extends Service implements WPSPeriodicLocationCallback, Runnable
 {
 
 	/**
-	 * Enables applications to bind to our service once it has started. The normal Binder interface
-	 * doesn't allow us to directly communicate with the object we are binding. Since, we know
-	 * that both the class that is being bound and the class that is binding exist in the same
-	 * process, the class that is binding can just call the bound class's methods directly. So,
-	 * we extend the Binder class to allow a method that returns a reference to the class being
-	 * bound.
+	 * Enables applications to bind to our service once it has started. The normal Binder interface doesn't allow us to directly communicate
+	 * with the object we are binding. Since, we know that both the class that is being bound and the class that is binding exist in the
+	 * same process, the class that is binding can just call the bound class's methods directly. So, we extend the Binder class to allow a
+	 * method that returns a reference to the class being bound.
 	 */
 	public class LocalBinder extends Binder
 	{
 
 		/**
 		 * Called by the class attempting to bind to us if it wants to access our methods directly.
-		 *
+		 * 
 		 * @return a reference to our TourGuideService class.
 		 */
 		TourGuideService getService()
 		{
-			//return a reference to our service instance.
+			// return a reference to our service instance.
 			return TourGuideService.this;
 		}
 	}
@@ -102,42 +99,41 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 	@Override
 	public void done()
 	{
-		//Do nothing, because we don't care about it.
+		// Do nothing, because we don't care about it.
 	}
 
 	/**
-	 * Skyhook required callback that occurs when skyhook is unable to retrieve the current
-	 * location. We simply ask it to continue if this happens.
-	 *
-	 * @param wpsReturnCode the error code. We don't use it.
-	 * @return WPSContinuation.WPS_CONTINUE to signify that we want to keep trying to lock onto
-	 *  the current location.
+	 * Skyhook required callback that occurs when skyhook is unable to retrieve the current location. We simply ask it to continue if this
+	 * happens.
+	 * 
+	 * @param wpsReturnCode
+	 *            the error code. We don't use it.
+	 * @return WPSContinuation.WPS_CONTINUE to signify that we want to keep trying to lock onto the current location.
 	 */
 	@Override
 	public WPSContinuation handleError(WPSReturnCode wpsReturnCode)
 	{
-		//show a toast.
+		// show a toast.
 		showToast("Attempting to lock onto your location...");
 
-		//tell skyhook that we want to continue to recieve location updates.
+		// tell skyhook that we want to continue to recieve location updates.
 		return WPSContinuation.WPS_CONTINUE;
 	}
 
 	/**
-	 * Skyhook callback that is called each time it is able to lock onto our current
-	 * location. We check the newly returned location with the points of interest
-	 * in the database and notify the user if we've hit one.
-	 *
-	 * @param location our current location in latitude and longitude.
-	 * @return WPSContinuation.WPS_CONTINUE to signify that we want to lock onto
-	 * the current location again.
+	 * Skyhook callback that is called each time it is able to lock onto our current location. We check the newly returned location with the
+	 * points of interest in the database and notify the user if we've hit one.
+	 * 
+	 * @param location
+	 *            our current location in latitude and longitude.
+	 * @return WPSContinuation.WPS_CONTINUE to signify that we want to lock onto the current location again.
 	 */
 	@Override
 	public WPSContinuation handleWPSPeriodicLocation(WPSLocation location)
 	{
-		//Keep the current location internally, so that it is retrievable via
-		//getLocation(). The Activity needs this to draw a point for where we
-		//are located.
+		// Keep the current location internally, so that it is retrievable via
+		// getLocation(). The Activity needs this to draw a point for where we
+		// are located.
 		this.location = location;
 
 		// for each point of interest in the database.
@@ -146,7 +142,7 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			// get the distance between our location and the point of interest.
 			float distance[] = new float[1];
 			Location.distanceBetween(this.location.getLatitude(), this.location.getLongitude(), destination.gpsCenterPoint.getLatitude(),
-									 destination.gpsCenterPoint.getLongitude(), distance);
+					destination.gpsCenterPoint.getLongitude(), distance);
 
 			// If we were not already triggered
 			// then check if our distance is less than the point of interest's radius.
@@ -171,7 +167,7 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 					// for some reason the file didn't exist in the DB. Corrupt DB maybe?
 					// Warn the user.
 					this.showToast("Warning: attempted to play file'" + destination.file + "' but it did not exist.\n "
-								   + "Please restart UDTourGuide while connected " + "to the internet to update the DB.");
+							+ "Please restart UDTourGuide while connected " + "to the internet to update the DB.");
 				}
 			}
 			// If we already triggered our blurb, we need to set it to untriggered
@@ -195,16 +191,16 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 	}
 
 	/**
-	 * Called when someone attempts to bind to us. We return our extended Binder that
-	 * allows direct method invocation.
-	 *
-	 * @param intent the intent provided by the class attempting to bind to us.
+	 * Called when someone attempts to bind to us. We return our extended Binder that allows direct method invocation.
+	 * 
+	 * @param intent
+	 *            the intent provided by the class attempting to bind to us.
 	 * @return our extended binder. Please call getService() using it.
 	 */
 	@Override
 	public IBinder onBind(Intent intent)
 	{
-		//return our binder.
+		// return our binder.
 		return localBinder;
 	}
 
@@ -214,35 +210,35 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 	@Override
 	public void onCreate()
 	{
-		//Call the papa.
+		// Call the papa.
 		super.onCreate();
 
-		//create object to store the database.
+		// create object to store the database.
 		this.database = new HashSet<PointOfInterest>();
 	}
 
 	/**
-	 * This should be called by the binder after it binds
-	 * to us. We use the activity to send GUI notifications
-	 * and to play back sounds.
-	 *
-	 * @param tourGuideActivity the activity for us to use internally.
+	 * This should be called by the binder after it binds to us. We use the activity to send GUI notifications and to play back sounds.
+	 * 
+	 * @param tourGuideActivity
+	 *            the activity for us to use internally.
 	 */
 	public void setActivity(TourGuideActivity tourGuideActivity)
 	{
-		//set the activity.
+		// set the activity.
 		this.tourGuideActivity = tourGuideActivity;
 	}
 
 	/**
 	 * Simply uses the activity to play a sound for the user.
-	 *
-	 * @param sound the internal resource id of the sound to play.
+	 * 
+	 * @param sound
+	 *            the internal resource id of the sound to play.
 	 */
 	void playSound(final int sound)
 	{
-		//Insert a runnable object into the activity's message queue.
-		//The activity will run the code when the message is processed.
+		// Insert a runnable object into the activity's message queue.
+		// The activity will run the code when the message is processed.
 		tourGuideActivity.handler.post(new Runnable()
 		{
 
@@ -252,20 +248,20 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			@Override
 			public void run()
 			{
-				//create a media player object to play sound with.
+				// create a media player object to play sound with.
 				MediaPlayer mediaPlayer = MediaPlayer.create(tourGuideActivity, sound);
 
-				//start the sound.
+				// start the sound.
 				mediaPlayer.start();
 
-				//wait until it finishes.
+				// wait until it finishes.
 				while (mediaPlayer.isPlaying())
 				{
-					//yield this thread while we wait.
+					// yield this thread while we wait.
 					Thread.yield();
 				}
 
-				//release the created media player object.
+				// release the created media player object.
 				mediaPlayer.release();
 			}
 		});
@@ -284,7 +280,7 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 	 */
 	private void processDB(boolean isDownloadFiles) throws FileNotFoundException, IOException
 	{
-		//Show a progress dialog.
+		// Show a progress dialog.
 		this.showDialogProgressIndeterminate("Processing database...");
 
 		// open our database for reading each statement.
@@ -308,10 +304,10 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 				// make sure we have 6 pieces of data on the line.
 				if (data.length == 6)
 				{
-					//Attempt to update the file if we are current set to download updates.
+					// Attempt to update the file if we are current set to download updates.
 					if (isDownloadFiles == true)
 					{
-						//update the progress dialog.
+						// update the progress dialog.
 						this.showDialogProgressIndeterminate("Checking for updates for '" + data[5].trim() + "'...");
 
 						// retrieve the sound file listed on database line.
@@ -320,8 +316,8 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 					}
 
 					// create a tuple of data for the particular location.
-					PointOfInterest point = new PointOfInterest(data[0].trim(), Double.valueOf(data[1].trim()), Double.valueOf(
-							data[2].trim()), Double.valueOf(data[3].trim()), Double.valueOf(data[4].trim()), data[5].trim());
+					PointOfInterest point = new PointOfInterest(data[0].trim(), Double.valueOf(data[1].trim()), Double.valueOf(data[2]
+							.trim()), Double.valueOf(data[3].trim()), Double.valueOf(data[4].trim()), data[5].trim());
 
 					// store it in our list of location points.
 					this.database.add(point);
@@ -400,6 +396,7 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 		// get the last modified date of the remote file.
 		long modifiedDate = httpConn.getLastModified();
 
+		//get the length in bytes of the file.
 		int length = httpConn.getContentLength();
 
 		// get the local file so that we can check when it was last modified
@@ -428,7 +425,7 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 				// keep track of our position in the file.
 				currentPosition = currentPosition + amountRead;
 
-				this.showDialogProgress("Downloading '" + file + "'...", currentPosition, length);
+				this.showDialogProgress("Downloading '" + file + "'\nshown in bytes:", currentPosition, length);
 
 				// write the data to the local stream.
 				// outputStream.write(data);
@@ -452,27 +449,27 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 	}
 
 	/**
-	 * Code that is to be run in a thread other than the GUI thread. It updates and processes the
-	 * database for the program. It should begin when start() is called.
+	 * Code that is to be run in a thread other than the GUI thread. It updates and processes the database for the program. It should begin
+	 * when start() is called.
 	 */
 	@Override
 	public void run()
 	{
 		try
 		{
-			//Check to see if we are looking for database updates.
+			// Check to see if we are looking for database updates.
 			if (this.isUpdate == true)
 			{
-				//we are looking for database updates.
+				// we are looking for database updates.
 
-				//We want to make sure we are connected before attempting to download updates.
-				ConnectivityManager connectivityManager = (ConnectivityManager) tourGuideActivity.getSystemService(
-						Context.CONNECTIVITY_SERVICE);
+				// We want to make sure we are connected before attempting to download updates.
+				ConnectivityManager connectivityManager = (ConnectivityManager) tourGuideActivity
+						.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-				//make sure we are connected.
+				// make sure we are connected.
 				if (connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected())
 				{
-					//connected- continue with database updates.
+					// connected- continue with database updates.
 
 					// connected the the internet so we will retrieve a updated DB if needed.
 					this.updateDB();
@@ -484,33 +481,33 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 				}
 				else
 				{
-					//we aren't connected. But, we don't want to error out if a database is already installed.
+					// we aren't connected. But, we don't want to error out if a database is already installed.
 
-					//check to see if a database is already installed.
+					// check to see if a database is already installed.
 					if (tourGuideActivity.getFileStreamPath(TourGuideStatics.databaseFile).exists())
 					{
-						//db was installed.
+						// db was installed.
 
-						//show warning.
+						// show warning.
 						this.showToast("You need to be connected to the Internet to "
-									   + "update the database. Defaulting to non-update mode.");
+								+ "update the database. Defaulting to non-update mode.");
 
-						//process the database.
+						// process the database.
 						this.processDB(false);
 
-						//request skyhook location updates.
+						// request skyhook location updates.
 						requestLocationUpdates();
 
-						//we are ready to go. Tell the user!
+						// we are ready to go. Tell the user!
 						this.showDialogProgressIndeterminate("UDTourGuide is ready!");
 					}
 					else
 					{
-						//db was NOT installed.
+						// db was NOT installed.
 
-						//throw an error to the user.
+						// throw an error to the user.
 						this.showDialogExit("Local database hasn't been installed.\n"
-											+ "\nPlease connect to the Internet then restart UDTourGuide to install the database.");
+								+ "\nPlease connect to the Internet then restart UDTourGuide to install the database.");
 					}
 				}
 			}
@@ -520,22 +517,22 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 				// so we are just going to process the local copy of our DB.
 				this.processDB(false);
 
-				//request skyhook location updates.
+				// request skyhook location updates.
 				requestLocationUpdates();
 
-				//we are ready to go. Tell the user!
+				// we are ready to go. Tell the user!
 				this.showDialogProgressIndeterminate("UDTourGuide is ready!");
 			}
 
-			//Hid the progress dialogs.
+			// Hid the progress dialogs.
 			hideDialogProgress();
 			hideDialogProgressIndeterminate();
 		}
 		catch (Exception e)
 		{
-			//We should never get here.
+			// We should never get here.
 
-			//Copy the stack trace.
+			// Copy the stack trace.
 			StackTraceElement elements[] = e.getStackTrace();
 			String trace = "";
 			for (int i = 0; i < elements.length; i++)
@@ -544,23 +541,24 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			}
 			hideDialogProgressIndeterminate();
 
-			//display it to the user.
+			// display it to the user.
 			this.showDialogExit("Exception:\n" + e.toString() + "\n\n" + trace);
 		}
 	}
 
 	/**
-	 * Tells the activity to display a blurb dialog for us. This consists of
-	 * a message telling which location we are close to and the file to play
-	 * if the user so wishes.
-	 *
-	 * @param file the file to play.
-	 * @param location the point of interest we are close by.
+	 * Tells the activity to display a blurb dialog for us. This consists of a message telling which location we are close to and the file
+	 * to play if the user so wishes.
+	 * 
+	 * @param file
+	 *            the file to play.
+	 * @param location
+	 *            the point of interest we are close by.
 	 */
 	void showDialogBlurb(final String file, final String location)
 	{
-		//Insert a runnable object into the activity's message queue.
-		//The activity will run the code when the message is processed.
+		// Insert a runnable object into the activity's message queue.
+		// The activity will run the code when the message is processed.
 		tourGuideActivity.handler.post(new Runnable()
 		{
 
@@ -570,27 +568,27 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			@Override
 			public void run()
 			{
-				//Hackish pre Android 2.2 way of getting the file and location
+				// Hackish pre Android 2.2 way of getting the file and location
 				// to the dialog.
 				TourGuideStatics.DIALOG_BLURB_FILE = file;
 				TourGuideStatics.DIALOG_BLURB_LOCATION = location;
 
-				//ask the message handler for the activity to politely display the dialog.
+				// ask the message handler for the activity to politely display the dialog.
 				tourGuideActivity.showDialog(TourGuideStatics.DIALOG_BLURB);
 			}
 		});
 	}
 
 	/**
-	 * Tells the activity to display an exit dialog for us. This consists of an exit message
-	 * and an okay button.
-	 *
-	 * @param text the exit message.
+	 * Tells the activity to display an exit dialog for us. This consists of an exit message and an okay button.
+	 * 
+	 * @param text
+	 *            the exit message.
 	 */
 	void showDialogExit(final String text)
 	{
-		//Insert a runnable object into the activity's message queue.
-		//The activity will run the code when the message is processed.
+		// Insert a runnable object into the activity's message queue.
+		// The activity will run the code when the message is processed.
 		tourGuideActivity.handler.post(new Runnable()
 		{
 
@@ -600,30 +598,32 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			@Override
 			public void run()
 			{
-				//Hackish pre Android 2.2 way of getting the text
+				// Hackish pre Android 2.2 way of getting the text
 				// to the dialog.
 				TourGuideStatics.DIALOG_EXIT_TEXT = text;
 
-				//ask the message handler for the activity to politely display the dialog.
+				// ask the message handler for the activity to politely display the dialog.
 				tourGuideActivity.showDialog(TourGuideStatics.DIALOG_EXIT);
 			}
 		});
 	}
 
 	/**
-	 * Tells the activity to display a progress dialog for us. There are two progress dialogs
-	 * that we use, one with an indefinite progress and one with a definite progress. This
-	 * one is the definite one, so we provide information for it to give the progress amount
-	 * to the user.
-	 *
-	 * @param text the message to be displayed in the dialog.
-	 * @param progress the current progress o the dialog relative to the max.
-	 * @param max the max progress.
+	 * Tells the activity to display a progress dialog for us. There are two progress dialogs that we use, one with an indefinite progress
+	 * and one with a definite progress. This one is the definite one, so we provide information for it to give the progress amount to the
+	 * user.
+	 * 
+	 * @param text
+	 *            the message to be displayed in the dialog.
+	 * @param progress
+	 *            the current progress o the dialog relative to the max.
+	 * @param max
+	 *            the max progress.
 	 */
 	void showDialogProgress(final String text, final int progress, final int max)
 	{
-		//Insert a runnable object into the activity's message queue.
-		//The activity will run the code when the message is processed.
+		// Insert a runnable object into the activity's message queue.
+		// The activity will run the code when the message is processed.
 		tourGuideActivity.handler.post(new Runnable()
 		{
 
@@ -633,36 +633,36 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			@Override
 			public void run()
 			{
-				//Hackish pre Android 2.2 way of getting the text, and progress bar info
+				// Hackish pre Android 2.2 way of getting the text, and progress bar info
 				// to the dialog.
 				TourGuideStatics.DIALOG_PROGRESS_TEXT = text;
 				TourGuideStatics.DIALOG_PROGRESS_PROGRESS = progress;
 				TourGuideStatics.DIALOG_PROGRESS_MAX = max;
 
-				//ask the message handler for the activity to politely display the dialog.
+				// ask the message handler for the activity to politely display the dialog.
 				tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS);
 
-				//FIXME: Below is for the Android 2.2 API.
-				//Bundle args = new Bundle();
-				//args.putString(TourGuideStatics.KEY_TEXT, text);
-				//args.putInt(TourGuideStatics.KEY_PROGRESS, progress);
-				//args.putInt(TourGuideStatics.KEY_MAX, max);
-				//tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS, args);
+				// FIXME: Below is for the Android 2.2 API.
+				// Bundle args = new Bundle();
+				// args.putString(TourGuideStatics.KEY_TEXT, text);
+				// args.putInt(TourGuideStatics.KEY_PROGRESS, progress);
+				// args.putInt(TourGuideStatics.KEY_MAX, max);
+				// tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS, args);
 			}
 		});
 	}
 
 	/**
-	 * Tells the activity to display a progress dialog for us. There are two progress dialogs
-	 * that we use, one with an indefinite progress and one with a definite progress. This
-	 * one is the indefinite one consisting of only a message.
-	 *
-	 * @param text the message to be displayed in the dialog.
+	 * Tells the activity to display a progress dialog for us. There are two progress dialogs that we use, one with an indefinite progress
+	 * and one with a definite progress. This one is the indefinite one consisting of only a message.
+	 * 
+	 * @param text
+	 *            the message to be displayed in the dialog.
 	 */
 	void showDialogProgressIndeterminate(final String text)
 	{
-		//Insert a runnable object into the activity's message queue.
-		//The activity will run the code when the message is processed.
+		// Insert a runnable object into the activity's message queue.
+		// The activity will run the code when the message is processed.
 		tourGuideActivity.handler.post(new Runnable()
 		{
 
@@ -672,16 +672,16 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			@Override
 			public void run()
 			{
-				//Hackish pre Android 2.2 way of getting the text.
+				// Hackish pre Android 2.2 way of getting the text.
 				TourGuideStatics.DIALOG_PROGRESS_TEXT = text;
 
-				//ask the message handler for the activity to politely display the dialog.
+				// ask the message handler for the activity to politely display the dialog.
 				tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
 
-				//FIXME: Below is for the Android 2.2 API.
-				//Bundle args = new Bundle();
-				//args.putString(TourGuideStatics.KEY_TEXT, text);
-				//tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE, args);
+				// FIXME: Below is for the Android 2.2 API.
+				// Bundle args = new Bundle();
+				// args.putString(TourGuideStatics.KEY_TEXT, text);
+				// tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE, args);
 			}
 		});
 	}
@@ -691,8 +691,8 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 	 */
 	void hideDialogProgress()
 	{
-		//Insert a runnable object into the activity's message queue.
-		//The activity will run the code when the message is processed.
+		// Insert a runnable object into the activity's message queue.
+		// The activity will run the code when the message is processed.
 		tourGuideActivity.handler.post(new Runnable()
 		{
 
@@ -702,7 +702,7 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			@Override
 			public void run()
 			{
-				//ask the message handler for the activity to politely hide the dialog.
+				// ask the message handler for the activity to politely hide the dialog.
 				tourGuideActivity.dismissDialog(TourGuideStatics.DIALOG_PROGRESS);
 			}
 		});
@@ -713,8 +713,8 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 	 */
 	void hideDialogProgressIndeterminate()
 	{
-		//Insert a runnable object into the activity's message queue.
-		//The activity will run the code when the message is processed.
+		// Insert a runnable object into the activity's message queue.
+		// The activity will run the code when the message is processed.
 		tourGuideActivity.handler.post(new Runnable()
 		{
 
@@ -724,23 +724,23 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			@Override
 			public void run()
 			{
-				//ask the message handler for the activity to politely hide the dialog.
+				// ask the message handler for the activity to politely hide the dialog.
 				tourGuideActivity.dismissDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
 			}
 		});
 	}
 
 	/**
-	 * Tells the activity to pop a toast for us. Really, it's not the activity, but android that
-	 * handles this internally.
-	 * Yes, pop a freaking toast!
-	 *
-	 * @param text the text of the toast to pop.
+	 * Tells the activity to pop a toast for us. Really, it's not the activity, but android that handles this internally. Yes, pop a
+	 * freaking toast!
+	 * 
+	 * @param text
+	 *            the text of the toast to pop.
 	 */
 	void showToast(final String text)
 	{
-		//Insert a runnable object into the activity's message queue.
-		//The activity will run the code when the message is processed.
+		// Insert a runnable object into the activity's message queue.
+		// The activity will run the code when the message is processed.
 		tourGuideActivity.handler.post(new Runnable()
 		{
 
@@ -750,10 +750,10 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			@Override
 			public void run()
 			{
-				//create the toast to pop.
+				// create the toast to pop.
 				Toast toast = Toast.makeText(tourGuideActivity.getApplicationContext(), text, 0);
 
-				//have android show the toast.
+				// have android show the toast.
 				toast.show();
 			}
 		});
@@ -761,7 +761,7 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 
 	/**
 	 * Attempts to retrieve an updated database file.
-	 *
+	 * 
 	 * @throws MalformedURLException
 	 *             Thrown if there is an issues creating the url using the specified server and file combination.
 	 * @throws IOException
@@ -769,77 +769,72 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 	 */
 	private void updateDB() throws MalformedURLException, IOException
 	{
-		//show a progress dialog.
+		// show a progress dialog.
 		this.showDialogProgressIndeterminate("Updating database...");
 
-		//retrieve the database file.
+		// retrieve the database file.
 		retrieveFile(TourGuideStatics.databaseFile);
 	}
 
 	/**
-	 * Allows other classes to retrieve our current location that we get
-	 * via location updates. This should be used by the Activity to display
-	 * a point for our current location on the map.
-	 *
+	 * Allows other classes to retrieve our current location that we get via location updates. This should be used by the Activity to
+	 * display a point for our current location on the map.
+	 * 
 	 * @return our location in latitude and longitude.
 	 */
 	public WPSLocation getLocation()
 	{
-		//return our location.
+		// return our location.
 		return this.location;
 	}
 
 	/**
-	 * Allows other classes to retrieve the points of interest that we've
-	 * processed and store internally. This should be used by the Activity
-	 * to display the points of interest on the map. Since we use a hashmap
-	 * we can use one of it's properties avoid concurrency problems. Basically,
-	 * A ConcurrentModificationException is thrown if the database is being
-	 * modified at the same time as it is being read. We can catch that
-	 * exception and ignore it.
-	 *
+	 * Allows other classes to retrieve the points of interest that we've processed and store internally. This should be used by the
+	 * Activity to display the points of interest on the map. Since we use a hashmap we can use one of it's properties avoid concurrency
+	 * problems. Basically, A ConcurrentModificationException is thrown if the database is being modified at the same time as it is being
+	 * read. We can catch that exception and ignore it.
+	 * 
 	 * @return the list of our points of interests.
 	 */
 	public Set<PointOfInterest> getDatabase()
 	{
-		//return our database.
+		// return our database.
 		return this.database;
 	}
 
 	/**
-	 * Allows other classes to set whether we are to look for updates when
-	 * calling the start() method. This should be set by the Activity class
-	 * before start() is called by it.
-	 *
-	 * @param isUpdate whether or not to retrieve updates.
+	 * Allows other classes to set whether we are to look for updates when calling the start() method. This should be set by the Activity
+	 * class before start() is called by it.
+	 * 
+	 * @param isUpdate
+	 *            whether or not to retrieve updates.
 	 */
 	public void setUpdate(boolean isUpdate)
 	{
-		//set whether we retrieve updates or not.
+		// set whether we retrieve updates or not.
 		this.isUpdate = isUpdate;
 	}
 
 	/**
-	 * This should be called by the class that binds to us so that we start
-	 * processing our database and start recieving location updates. Otherwise,
-	 * we do nothing. Only does something the first time it is called.
+	 * This should be called by the class that binds to us so that we start processing our database and start recieving location updates.
+	 * Otherwise, we do nothing. Only does something the first time it is called.
 	 */
 	public void start()
 	{
-		//if this method hasn't been run, we run it.
+		// if this method hasn't been run, we run it.
 		if (this.isStarted == false)
 		{
-			//create a thread to run.
+			// create a thread to run.
 			Thread thread = new Thread(this);
 
-			//start the thread.
+			// start the thread.
 			thread.start();
 		}
 
-		//set this to true, so we never run this method again.
+		// set this to true, so we never run this method again.
 		this.isStarted = true;
 	}
-	
+
 	/**
 	 * Variable to keep track of whether we've run the start() method or not.
 	 */
@@ -861,8 +856,7 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 	private WPSLocation location;
 
 	/**
-	 * Reference to our binder object. It enables applications to bind to us.
-	 * See our LocalBinder class for more details.
+	 * Reference to our binder object. It enables applications to bind to us. See our LocalBinder class for more details.
 	 */
 	private final Binder localBinder = new LocalBinder();
 
