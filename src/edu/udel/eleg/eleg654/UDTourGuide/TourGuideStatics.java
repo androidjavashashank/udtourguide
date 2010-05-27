@@ -35,19 +35,19 @@ package edu.udel.eleg.eleg654.udtourguide;
  * 
  * @author Aaron Myles Landwehr
  */
-final public class TourGuideStatics
+final class TourGuideStatics
 {
-	public static String server = "http://www.snaphat.com:80/udtourguide/";
-	public static String databaseFile = "locations.db";
+	static String server = "http://www.snaphat.com:80/udtourguide/";
+	static String databaseFile = "locations.db";
 
 	/**
 	 * Different types of dialogs
 	 */
-	public static final int DIALOG_EXIT = -1;
-	public static final int DIALOG_START = 0;
-	public static final int DIALOG_BLURB = 1;
-	public static final int DIALOG_PROGRESS = 2;
-	public static final int DIALOG_PROGRESS_INDETERMINATE = 3;
+	static final int DIALOG_EXIT = -1;
+	static final int DIALOG_START = 0;
+	static final int DIALOG_BLURB = 1;
+	static final int DIALOG_PROGRESS = 2;
+	static final int DIALOG_PROGRESS_INDETERMINATE = 3;
 
 	/**
 	 * Hackish way to get different dialog associated information to change when onPrepareDialog() is called. We set this stuff before
@@ -58,12 +58,12 @@ final public class TourGuideStatics
 	 * 
 	 * Note: THIS COULD FAIL IF THESE STATICS WERE CHANGED BEFORE A DIALOG WAS PROCESSED BY ANDROID.
 	 */
-	public static String DIALOG_EXIT_TEXT = "";
-	public static String DIALOG_BLURB_FILE = "";
-	public static String DIALOG_BLURB_LOCATION = "";
-	public static String DIALOG_PROGRESS_TEXT = "";
-	public static int DIALOG_PROGRESS_PROGRESS = 1;
-	public static int DIALOG_PROGRESS_MAX = 1;
+	static String DIALOG_EXIT_TEXT = "";
+	static String DIALOG_BLURB_FILE = "";
+	static String DIALOG_BLURB_LOCATION = "";
+	static String DIALOG_PROGRESS_TEXT = "";
+	static int DIALOG_PROGRESS_PROGRESS = 1;
+	static int DIALOG_PROGRESS_MAX = 1;
 
 	/**
 	 * Below is for the Android 2.2 API. We ideally want to uses these in the future.

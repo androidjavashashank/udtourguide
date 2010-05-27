@@ -40,9 +40,13 @@ import android.location.Location;
 final class PointOfInterest
 {
 	/**
-	 * The point of interest's name.
+	 * The name of the sound file associated with the point of interest.
 	 */
-	final String name;
+	final String file;
+	/**
+	 * The GPS coordinates that are for the center of the point of interest.
+	 */
+	final Location gpsCenterPoint;
 	/**
 	 * The GPS coordinates that end the line segment that starts from location. The actual GPS point is important, because we need to
 	 * convert it to a pixel location on screen and calculate the pixel radius between the center point and this point to display it as
@@ -52,17 +56,13 @@ final class PointOfInterest
 	 */
 	final Location gpsRadiusPoint;
 	/**
-	 * The GPS coordinates that are for the center of the point of interest.
+	 * The point of interest's name.
 	 */
-	final Location gpsCenterPoint;
+	final String name;
 	/**
 	 * The radius in meters between the two GPS points.
 	 */
 	final float radius;
-	/**
-	 * The name of the sound file associated with the point of interest.
-	 */
-	final String file;
 	/**
 	 * Whether or not the point of interest's sound file has been triggered. Resets when we are a certain distance outside of the radius.
 	 */
@@ -96,7 +96,7 @@ final class PointOfInterest
 		this.gpsRadiusPoint = new Location("");
 		this.gpsRadiusPoint.setLatitude(radiusLatitude);
 		this.gpsRadiusPoint.setLongitude(radiusLongitude);
-		this.radius = gpsCenterPoint.distanceTo(gpsRadiusPoint);
+		this.radius = this.gpsCenterPoint.distanceTo(this.gpsRadiusPoint);
 		this.file = file;
 	}
 }

@@ -58,13 +58,13 @@ import com.skyhookwireless.wps.WPSLocation;
  * 
  * @author Aaron Myles Landwehr
  */
-public class TourGuideActivity extends MapActivity
+class TourGuideActivity extends MapActivity
 {
 	/**
 	 * This class allows us to implement map overlays on top of google maps. We use it to display points of interest and our current
 	 * location.
 	 */
-	class MapOverlay extends com.google.android.maps.Overlay
+	private class MapOverlay extends com.google.android.maps.Overlay
 	{
 		/**
 		 * Draw method that we override to display what we want to.
@@ -87,7 +87,7 @@ public class TourGuideActivity extends MapActivity
 			super.draw(canvas, mapView, shadow);
 
 			// get the current location from our service.
-			WPSLocation location = tourGuideService.getLocation();
+			WPSLocation location = TourGuideActivity.this.tourGuideService.getLocation();
 
 			// make sure a location was already retrieved.
 			if (location != null)
@@ -116,7 +116,7 @@ public class TourGuideActivity extends MapActivity
 			try
 			{
 				// for each point of interest in the database display circles on the map.
-				for (PointOfInterest destination : tourGuideService.getDatabase())
+				for (PointOfInterest destination : TourGuideActivity.this.tourGuideService.getDatabase())
 				{
 
 					// get the geoPoint representation of our point of
@@ -166,15 +166,95 @@ public class TourGuideActivity extends MapActivity
 	}
 
 	/**
-	 * Google requires this, because it wants to know 'for accounting purposes' whether or not you are currently displaying any route
-	 * information.
+	 * Callback class that occurs everytime we bind to a service(because we pass a reference to the instance of this class when binding). We
+	 * use it to start up our service to do work(update and process it's database) as well as initialize map overlays to be displayed on
+	 * google maps.
 	 */
-	@Override
-	protected boolean isRouteDisplayed()
+	private ServiceConnection connectionToMyService = new ServiceConnection()
 	{
-		// we are not displaying any routes.
-		return false;
-	}
+		/**
+		 * callback method that occurs when the service is connected.
+		 */
+		@Override
+		public void onServiceConnected(ComponentName componentName, IBinder iBinder)
+		{
+			// get a reference to our service.
+			TourGuideActivity.this.tourGuideService = ((TourGuideService.LocalBinder) iBinder).getService();
+
+			// set whether or not our service is to update the local DB.
+			TourGuideActivity.this.tourGuideService.setUpdate(TourGuideActivity.this.isUpdate);
+
+			// give the service our current context.
+			TourGuideActivity.this.tourGuideService.setActivity(TourGuideActivity.this.tourGuideActivity);
+
+			// start the service into processing it's database.
+			// note: the service was created prior to us connecting to it,
+			// we create this start() method ourselves simply to fork a thread
+			// for updates.
+			TourGuideActivity.this.tourGuideService.start();
+
+			// get the map view from the resource id.
+			MapView mapView = (MapView) TourGuideActivity.this.findViewById(R.id.mapView);
+
+			// set the map to use its built in zoom controls so we can zoom.
+			mapView.setBuiltInZoomControls(true);
+
+			// set the map to be clickable otherwise we can't click the zoom controls
+			// or move around.
+			mapView.setClickable(true);
+
+			// get the map controller to zoom in as far as possible.
+			MapController mapControl = mapView.getController();
+			mapControl.setZoom(21);
+
+			// create a map overlay.
+			MapOverlay mapOverlay = new MapOverlay();
+
+			// clear any current overlays(they may be associated with a previous instance
+			// of our activity because of orientation change, etc- so we make sure to clear
+			// them.
+			mapView.getOverlays().clear();
+
+			// add our new map overlay.
+			mapView.getOverlays().add(mapOverlay);
+		}
+
+		/**
+		 * Callback method that occurs when our service is disconnected. We don't use this be are required to Override it.
+		 */
+		@Override
+		public void onServiceDisconnected(ComponentName componentName)
+		{
+			// set the service to null.
+			TourGuideActivity.this.tourGuideService = null;
+		}
+	};
+
+	/**
+	 * Whether or not to update the database. Sent to our service once we bind to it.
+	 */
+	private boolean isUpdate;
+
+	/**
+	 * media player we use to play sounds with.
+	 */
+	private MediaPlayer mediaPlayer = new MediaPlayer();
+
+	/**
+	 * Reference to our activity and context so that our inner classes can use it.
+	 */
+	private TourGuideActivity tourGuideActivity = this;
+
+	/**
+	 * Reference to the service so that we can directly call its methods. We basically need to start it via its start() method and get the
+	 * current location from it as well as points of interests to draw.
+	 */
+	private TourGuideService tourGuideService;
+
+	/**
+	 * message handler we use to run Runnable code that is sent from other threads. Currently used to display dialogs and play sounds.
+	 */
+	Handler handler = new Handler();
 
 	/**
 	 * Called when our activity is created. This can occur on application start or orientation change. Or pretty much whenever Android feels
@@ -188,7 +268,7 @@ public class TourGuideActivity extends MapActivity
 		super.onCreate(savedInstanceState);
 
 		// set our current content to be displayed.
-		setContentView(R.layout.main);
+		this.setContentView(R.layout.main);
 
 		// check to see if the application just started.
 		if (savedInstanceState == null)
@@ -196,10 +276,10 @@ public class TourGuideActivity extends MapActivity
 			// application just started.
 
 			// prefetch dialogs to avoid errors later.
-			prefetchDialogs();
+			this.prefetchDialogs();
 
 			// check if the DB exists and display start dialog if it does.
-			if (getFileStreamPath(TourGuideStatics.databaseFile).exists())
+			if (this.getFileStreamPath(TourGuideStatics.databaseFile).exists())
 			{
 				// DB exists, ask the user if they want to update it.
 				this.showDialog(TourGuideStatics.DIALOG_START);
@@ -212,10 +292,10 @@ public class TourGuideActivity extends MapActivity
 				this.isUpdate = true;
 
 				// start our service.
-				startService(new Intent(tourGuideActivity, TourGuideService.class));
+				this.startService(new Intent(this.tourGuideActivity, TourGuideService.class));
 
 				// bind to our service so we can call it's methods later.
-				bindService(new Intent(tourGuideActivity, TourGuideService.class), connectionToMyService, BIND_AUTO_CREATE);
+				this.bindService(new Intent(this.tourGuideActivity, TourGuideService.class), this.connectionToMyService, BIND_AUTO_CREATE);
 
 				// pop a toast.
 				Toast toast = Toast.makeText(this, "Local database hasn't been installed yet, downloading from the internet...", 0);
@@ -227,8 +307,34 @@ public class TourGuideActivity extends MapActivity
 			// application didn't just start. We already have a running service.
 
 			// just bind to our service.
-			bindService(new Intent(this, TourGuideService.class), connectionToMyService, BIND_AUTO_CREATE);
+			this.bindService(new Intent(this, TourGuideService.class), this.connectionToMyService, BIND_AUTO_CREATE);
 		}
+	}
+
+	/**
+	 * we use this to prefetch our progress dialogs, because we don't want Android throwing errors if we attempt to dismiss a dialog we've
+	 * never shown(it wouldn't have been created yet). This way it is created always.
+	 */
+	private void prefetchDialogs()
+	{
+		// show the progress dialogs
+		this.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
+		this.showDialog(TourGuideStatics.DIALOG_PROGRESS);
+
+		// dismiss the progress dialogs.
+		this.dismissDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
+		this.dismissDialog(TourGuideStatics.DIALOG_PROGRESS);
+	}
+
+	/**
+	 * Google requires this, because it wants to know 'for accounting purposes' whether or not you are currently displaying any route
+	 * information.
+	 */
+	@Override
+	protected boolean isRouteDisplayed()
+	{
+		// we are not displaying any routes.
+		return false;
 	}
 
 	/**
@@ -284,16 +390,17 @@ public class TourGuideActivity extends MapActivity
 					public void onClick(DialogInterface arg0, int arg1)
 					{
 						// user asked for updates. to set it.
-						isUpdate = true;
+						TourGuideActivity.this.isUpdate = true;
 
 						// start our service.
-						startService(new Intent(tourGuideActivity, TourGuideService.class));
+						TourGuideActivity.this.startService(new Intent(TourGuideActivity.this.tourGuideActivity, TourGuideService.class));
 
 						// bind to our service using our activity as the context.
-						bindService(new Intent(tourGuideActivity, TourGuideService.class), connectionToMyService, BIND_AUTO_CREATE);
+						TourGuideActivity.this.bindService(new Intent(TourGuideActivity.this.tourGuideActivity, TourGuideService.class),
+								TourGuideActivity.this.connectionToMyService, BIND_AUTO_CREATE);
 
 						// pop a toast.
-						Toast toast = Toast.makeText(tourGuideActivity,
+						Toast toast = Toast.makeText(TourGuideActivity.this.tourGuideActivity,
 								"Don't worry, internet access is only needed for updates and google maps!", 0);
 						toast.show();
 					}
@@ -309,13 +416,14 @@ public class TourGuideActivity extends MapActivity
 					public void onClick(DialogInterface arg0, int arg1)
 					{
 						// user doesn't want updates. so unset it.
-						isUpdate = false;
+						TourGuideActivity.this.isUpdate = false;
 
 						// start our service.
-						startService(new Intent(tourGuideActivity, TourGuideService.class));
+						TourGuideActivity.this.startService(new Intent(TourGuideActivity.this.tourGuideActivity, TourGuideService.class));
 
 						// bind to our service using our activity as the context.
-						bindService(new Intent(tourGuideActivity, TourGuideService.class), connectionToMyService, BIND_AUTO_CREATE);
+						TourGuideActivity.this.bindService(new Intent(TourGuideActivity.this.tourGuideActivity, TourGuideService.class),
+								TourGuideActivity.this.connectionToMyService, BIND_AUTO_CREATE);
 					}
 				});
 
@@ -351,7 +459,7 @@ public class TourGuideActivity extends MapActivity
 			case TourGuideStatics.DIALOG_PROGRESS:
 			{
 				// create a new progress dialog.
-				ProgressDialog progressDialog = new ProgressDialog(tourGuideActivity);
+				ProgressDialog progressDialog = new ProgressDialog(this.tourGuideActivity);
 
 				// set its style determinate with a horizontal progress bar.
 				progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
@@ -384,7 +492,7 @@ public class TourGuideActivity extends MapActivity
 			case TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE:
 			{
 				// create a new progress dialog.
-				ProgressDialog progressDialog = new ProgressDialog(tourGuideActivity);
+				ProgressDialog progressDialog = new ProgressDialog(this.tourGuideActivity);
 
 				// set it to the spinner looking one(which is only indeterminate afaik).
 				progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -426,7 +534,7 @@ public class TourGuideActivity extends MapActivity
 		super.onDestroy();
 
 		// is the application about to die?
-		if (isFinishing())
+		if (this.isFinishing())
 		{
 			// Red warrior is about to die!
 			System.exit(0);
@@ -473,11 +581,11 @@ public class TourGuideActivity extends MapActivity
 						try
 						{
 							// reset the media player associated with this activity and play the file.
-							mediaPlayer.reset();
-							mediaPlayer.setDataSource(new FileInputStream(tourGuideActivity
+							TourGuideActivity.this.mediaPlayer.reset();
+							TourGuideActivity.this.mediaPlayer.setDataSource(new FileInputStream(TourGuideActivity.this.tourGuideActivity
 									.getFileStreamPath(TourGuideStatics.DIALOG_BLURB_FILE)).getFD());
-							mediaPlayer.prepare();
-							mediaPlayer.start();
+							TourGuideActivity.this.mediaPlayer.prepare();
+							TourGuideActivity.this.mediaPlayer.start();
 						}
 						catch (Exception e)
 						{
@@ -530,110 +638,4 @@ public class TourGuideActivity extends MapActivity
 		// Blue warrior needs food badly!
 		System.exit(0);
 	}
-
-	/**
-	 * we use this to prefetch our progress dialogs, because we don't want Android throwing errors if we attempt to dismiss a dialog we've
-	 * never shown(it wouldn't have been created yet). This way it is created always.
-	 */
-	void prefetchDialogs()
-	{
-		// show the progress dialogs
-		this.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
-		this.showDialog(TourGuideStatics.DIALOG_PROGRESS);
-
-		// dismiss the progress dialogs.
-		this.dismissDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
-		this.dismissDialog(TourGuideStatics.DIALOG_PROGRESS);
-	}
-
-	/**
-	 * Callback class that occurs everytime we bind to a service(because we pass a reference to the instance of this class when binding). We
-	 * use it to start up our service to do work(update and process it's database) as well as initialize map overlays to be displayed on
-	 * google maps.
-	 */
-	private ServiceConnection connectionToMyService = new ServiceConnection()
-	{
-		/**
-		 * callback method that occurs when the service is connected.
-		 */
-		@Override
-		public void onServiceConnected(ComponentName componentName, IBinder iBinder)
-		{
-			// get a reference to our service.
-			tourGuideService = ((TourGuideService.LocalBinder) iBinder).getService();
-
-			// set whether or not our service is to update the local DB.
-			tourGuideService.setUpdate(isUpdate);
-
-			// give the service our current context.
-			tourGuideService.setActivity(tourGuideActivity);
-
-			// start the service into processing it's database.
-			// note: the service was created prior to us connecting to it,
-			// we create this start() method ourselves simply to fork a thread
-			// for updates.
-			tourGuideService.start();
-
-			// get the map view from the resource id.
-			MapView mapView = (MapView) findViewById(R.id.mapView);
-
-			// set the map to use its built in zoom controls so we can zoom.
-			mapView.setBuiltInZoomControls(true);
-
-			// set the map to be clickable otherwise we can't click the zoom controls
-			// or move around.
-			mapView.setClickable(true);
-
-			// get the map controller to zoom in as far as possible.
-			MapController mapControl = mapView.getController();
-			mapControl.setZoom(21);
-
-			// create a map overlay.
-			MapOverlay mapOverlay = new MapOverlay();
-
-			// clear any current overlays(they may be associated with a previous instance
-			// of our activity because of orientation change, etc- so we make sure to clear
-			// them.
-			mapView.getOverlays().clear();
-
-			// add our new map overlay.
-			mapView.getOverlays().add(mapOverlay);
-		}
-
-		/**
-		 * Callback method that occurs when our service is disconnected. We don't use this be are required to Override it.
-		 */
-		@Override
-		public void onServiceDisconnected(ComponentName componentName)
-		{
-			// set the service to null.
-			tourGuideService = null;
-		}
-	};
-
-	/**
-	 * message handler we use to run Runnable code that is sent from other threads. Currently used to display dialogs and play sounds.
-	 */
-	Handler handler = new Handler();
-
-	/**
-	 * Whether or not to update the database. Sent to our service once we bind to it.
-	 */
-	private boolean isUpdate;
-
-	/**
-	 * media player we use to play sounds with.
-	 */
-	private MediaPlayer mediaPlayer = new MediaPlayer();
-
-	/**
-	 * Reference to our activity and context so that our inner classes can use it.
-	 */
-	private TourGuideActivity tourGuideActivity = this;
-
-	/**
-	 * Reference to the service so that we can directly call its methods. We basically need to start it via its start() method and get the
-	 * current location from it as well as points of interests to draw.
-	 */
-	private TourGuideService tourGuideService;
 }
