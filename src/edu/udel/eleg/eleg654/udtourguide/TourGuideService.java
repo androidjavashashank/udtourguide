@@ -20,6 +20,8 @@ import android.location.Location;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.os.Binder;
+import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.widget.Toast;
 
@@ -144,9 +146,9 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 	public WPSContinuation handleError(WPSReturnCode wpsReturnCode)
 	{
 		// show a toast.
-		this.showToast("Attempting to lock onto your location...");
+		// this.showToast("Attempting to lock onto your location...");
 
-		// tell skyhook that we want to continue to recieve location updates.
+		// tell skyhook that we want to continue to receive location updates.
 		return WPSContinuation.WPS_CONTINUE;
 	}
 
@@ -630,13 +632,29 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			@Override
 			public void run()
 			{
-				// Hackish pre Android 2.2 way of getting the file and location
-				// to the dialog.
-				TourGuideStatics.DIALOG_BLURB_FILE = file;
-				TourGuideStatics.DIALOG_BLURB_LOCATION = location;
+				//If we are Android 2.2 or Higher we want to use the newer API.
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO)
+				{
+					// Below is for the Android 2.2 API.
 
-				// ask the message handler for the activity to politely display the dialog.
-				TourGuideService.this.tourGuideActivity.showDialog(TourGuideStatics.DIALOG_BLURB);
+					Bundle args = new Bundle();
+					args.putString(TourGuideStatics.KEY_FILE, file);
+					args.putString(TourGuideStatics.KEY_LOCATION, location);
+
+					// ask the message handler for the activity to politely display the dialog.
+					TourGuideService.this.tourGuideActivity.showDialog(TourGuideStatics.DIALOG_BLURB, args);
+				}
+				else
+				{
+					// Hackish pre Android 2.2 way of getting the file and location
+					// to the dialog.
+					
+					TourGuideStatics.DIALOG_BLURB_FILE = file;
+					TourGuideStatics.DIALOG_BLURB_LOCATION = location;
+
+					// ask the message handler for the activity to politely display the dialog.
+					TourGuideService.this.tourGuideActivity.showDialog(TourGuideStatics.DIALOG_BLURB);
+				}
 			}
 		});
 	}
@@ -660,12 +678,26 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			@Override
 			public void run()
 			{
-				// Hackish pre Android 2.2 way of getting the text
-				// to the dialog.
-				TourGuideStatics.DIALOG_EXIT_TEXT = text;
+				//If we are Android 2.2 or Higher we want to use the newer API.
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO)
+				{
+					// Below is for the Android 2.2 API.
 
-				// ask the message handler for the activity to politely display the dialog.
-				TourGuideService.this.tourGuideActivity.showDialog(TourGuideStatics.DIALOG_EXIT);
+					Bundle args = new Bundle();
+					args.putString(TourGuideStatics.KEY_TEXT, text);
+
+					// ask the message handler for the activity to politely display the dialog.
+					tourGuideActivity.showDialog(TourGuideStatics.DIALOG_EXIT, args);
+				}
+				else
+				{
+					// Hackish pre Android 2.2 way of getting the text
+					// to the dialog.
+					TourGuideStatics.DIALOG_EXIT_TEXT = text;
+					
+					// ask the message handler for the activity to politely display the dialog.
+					TourGuideService.this.tourGuideActivity.showDialog(TourGuideStatics.DIALOG_EXIT);
+				}
 			}
 		});
 	}
@@ -695,21 +727,31 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			@Override
 			public void run()
 			{
-				// Hackish pre Android 2.2 way of getting the text, and progress bar info
-				// to the dialog.
-				TourGuideStatics.DIALOG_PROGRESS_TEXT = text;
-				TourGuideStatics.DIALOG_PROGRESS_PROGRESS = progress;
-				TourGuideStatics.DIALOG_PROGRESS_MAX = max;
+				//If we are Android 2.2 or Higher we want to use the newer API.
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO)
+				{
+					// Below is for the Android 2.2 API.
 
-				// ask the message handler for the activity to politely display the dialog.
-				TourGuideService.this.tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS);
+					Bundle args = new Bundle();
+					args.putString(TourGuideStatics.KEY_TEXT, text);
+					args.putInt(TourGuideStatics.KEY_PROGRESS, progress);
+					args.putInt(TourGuideStatics.KEY_MAX, max);
 
-				// FIXME: Below is for the Android 2.2 API.
-				// Bundle args = new Bundle();
-				// args.putString(TourGuideStatics.KEY_TEXT, text);
-				// args.putInt(TourGuideStatics.KEY_PROGRESS, progress);
-				// args.putInt(TourGuideStatics.KEY_MAX, max);
-				// tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS, args);
+					// ask the message handler for the activity to politely display the dialog.
+					tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS, args);
+				}
+				else
+				{
+					// Hackish pre Android 2.2 way of getting the text, and progress bar info
+					// to the dialog.
+
+					TourGuideStatics.DIALOG_PROGRESS_TEXT = text;
+					TourGuideStatics.DIALOG_PROGRESS_PROGRESS = progress;
+					TourGuideStatics.DIALOG_PROGRESS_MAX = max;
+
+					// ask the message handler for the activity to politely display the dialog.
+					TourGuideService.this.tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS);
+				}
 			}
 		});
 	}
@@ -734,16 +776,26 @@ public class TourGuideService extends Service implements WPSPeriodicLocationCall
 			@Override
 			public void run()
 			{
-				// Hackish pre Android 2.2 way of getting the text.
-				TourGuideStatics.DIALOG_PROGRESS_TEXT = text;
+				//If we are Android 2.2 or Higher we want to use the newer API.
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO)
+				{
+					// Below is for the Android 2.2 API.
 
-				// ask the message handler for the activity to politely display the dialog.
-				TourGuideService.this.tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
+					Bundle args = new Bundle();
+					args.putString(TourGuideStatics.KEY_TEXT, text);
 
-				// FIXME: Below is for the Android 2.2 API.
-				// Bundle args = new Bundle();
-				// args.putString(TourGuideStatics.KEY_TEXT, text);
-				// tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE, args);
+					// ask the message handler for the activity to politely display the dialog.
+					tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE, args);
+				}
+				else
+				{
+					// Hackish pre Android 2.2 way of getting the text.
+
+					TourGuideStatics.DIALOG_PROGRESS_TEXT = text;
+
+					// ask the message handler for the activity to politely display the dialog.
+					TourGuideService.this.tourGuideActivity.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
+				}
 			}
 		});
 	}

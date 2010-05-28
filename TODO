@@ -1,5 +1,4 @@
-1) Port to Android 2.2 API. (Change dialog code). There is no way to do conditional compilation, so
-I cannot support both platforms.
+1) Remove 2.1 API and lower support when all devices support the higher API?
 
 2)Animate to the current location differently(not in the Activity).
 

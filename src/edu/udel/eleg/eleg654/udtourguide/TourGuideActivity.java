@@ -15,6 +15,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -281,8 +282,17 @@ public class TourGuideActivity extends MapActivity
 			// check if the DB exists and display start dialog if it does.
 			if (this.getFileStreamPath(TourGuideStatics.databaseFile).exists())
 			{
-				// DB exists, ask the user if they want to update it.
-				this.showDialog(TourGuideStatics.DIALOG_START);
+				//If we are Android 2.2 or Higher we want to use the newer API.
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO)
+				{
+					// DB exists, ask the user if they want to update it.
+					this.showDialog(TourGuideStatics.DIALOG_START, null);
+				}
+				else
+				{
+					// DB exists, ask the user if they want to update it.
+					this.showDialog(TourGuideStatics.DIALOG_START);
+				}
 			}
 			else
 			{
@@ -318,9 +328,31 @@ public class TourGuideActivity extends MapActivity
 	private void prefetchDialogs()
 	{
 		// show the progress dialogs
-		this.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
-		this.showDialog(TourGuideStatics.DIALOG_PROGRESS);
-
+		
+		//If we are Android 2.2 or Higher we want to use the newer API.
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO)
+		{
+			//Arbitrarily create bundle data to send for the dialogs.
+			Bundle args = new Bundle();
+			args.putString(TourGuideStatics.KEY_TEXT, "");
+			args.putInt(TourGuideStatics.KEY_PROGRESS, 1);
+			args.putInt(TourGuideStatics.KEY_MAX, 1);
+			
+			//show the dialogs.
+			this.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE, args);
+			this.showDialog(TourGuideStatics.DIALOG_PROGRESS, args);
+		}
+		else
+		{
+			//Arbitrarily create data to use for the dialogs.
+			TourGuideStatics.DIALOG_PROGRESS_TEXT = "";
+			TourGuideStatics.DIALOG_PROGRESS_PROGRESS = 1;
+			TourGuideStatics.DIALOG_PROGRESS_MAX = 1;
+			
+			//show the dialogs.
+			this.showDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
+			this.showDialog(TourGuideStatics.DIALOG_PROGRESS);
+		}
 		// dismiss the progress dialogs.
 		this.dismissDialog(TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE);
 		this.dismissDialog(TourGuideStatics.DIALOG_PROGRESS);
@@ -338,14 +370,186 @@ public class TourGuideActivity extends MapActivity
 	}
 
 	/**
-	 * This method allows us to manage what happens when android creates our dialogs. We use it to set things like texts, buttons, etc. We
-	 * current use a hack to create dynamic dialog text, etc because Android 2.1 and lower APIs have no way to give this guy information to
-	 * change the dialog. So instead we use static variables that are not thread safe.
-	 * 
-	 * Android 2.2. Solves this issue. This will be changed when I have access to a phone with API8.
+	 * This method allows us to manage what happens when android creates our dialogs. We use it to set things like texts, buttons, etc.
+	 * Using the Android 2.2 API, we pass arguments to this callback in order to implement dynamic dialogs.
 	 */
 	@Override
-	// FIXME: protected Dialog onCreateDialog(int id, Bundle args)
+	protected Dialog onCreateDialog(int id, Bundle args)
+	{
+		Dialog dialog;
+		switch (id)
+		{
+			// create our exit dialog.
+			case TourGuideStatics.DIALOG_EXIT:
+			{
+				AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
+				alertBuilder.setCancelable(false);
+				alertBuilder.setMessage(args.getString(TourGuideStatics.KEY_TEXT));
+				alertBuilder.setPositiveButton("Exit", new OnClickListener()
+				{
+					@Override
+					public void onClick(DialogInterface arg0, int arg1)
+					{
+						System.exit(0);
+					}
+				});
+				dialog = alertBuilder.create();
+				break;
+			}
+				// create our startup dialog.
+			case TourGuideStatics.DIALOG_START:
+			{
+				// use the alert dialog builder with our activity as the context.
+				AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
+
+				// make the dialog unable to be backed out of by the user.
+				alertBuilder.setCancelable(false);
+
+				// write the dialog message.
+				alertBuilder.setMessage("Welcome to UDTourGuide!\n" + "Do you want to update the database?\n(Requires Internet Access)");
+
+				// setup what happens when the Yes button is clicked.
+				alertBuilder.setPositiveButton("Yes", new OnClickListener()
+				{
+					/**
+					 * Code that is run when the button is clicked.
+					 */
+					@Override
+					public void onClick(DialogInterface arg0, int arg1)
+					{
+						// user asked for updates. to set it.
+						TourGuideActivity.this.isUpdate = true;
+
+						// start our service.
+						TourGuideActivity.this.startService(new Intent(TourGuideActivity.this.tourGuideActivity, TourGuideService.class));
+
+						// bind to our service using our activity as the context.
+						TourGuideActivity.this.bindService(new Intent(TourGuideActivity.this.tourGuideActivity, TourGuideService.class),
+								TourGuideActivity.this.connectionToMyService, BIND_AUTO_CREATE);
+
+						// pop a toast.
+						Toast toast = Toast.makeText(TourGuideActivity.this.tourGuideActivity,
+								"Don't worry, internet access is only needed for updates and google maps!", 0);
+						toast.show();
+					}
+				});
+
+				// setup what happens when the No button is clicked.
+				alertBuilder.setNegativeButton("No Thanks", new OnClickListener()
+				{
+					/**
+					 * Code that is run when the button is clicked.
+					 */
+					@Override
+					public void onClick(DialogInterface arg0, int arg1)
+					{
+						// user doesn't want updates. so unset it.
+						TourGuideActivity.this.isUpdate = false;
+
+						// start our service.
+						TourGuideActivity.this.startService(new Intent(TourGuideActivity.this.tourGuideActivity, TourGuideService.class));
+
+						// bind to our service using our activity as the context.
+						TourGuideActivity.this.bindService(new Intent(TourGuideActivity.this.tourGuideActivity, TourGuideService.class),
+								TourGuideActivity.this.connectionToMyService, BIND_AUTO_CREATE);
+					}
+				});
+
+				// actually create the dialog from the builder.
+				dialog = alertBuilder.create();
+				break;
+			}
+				// create our blurb dialog.
+			case TourGuideStatics.DIALOG_BLURB:
+			{
+				// use the alert dialog builder to create our alert dialog.
+				AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
+
+				// make the alert dialog not backoutable.
+				alertBuilder.setCancelable(false);
+
+				// set a default message- we need this to be before creation.
+				alertBuilder.setMessage("");
+
+				// tell the builder we want a play button- don't worry, we setup
+				// its callback in onPrepareDialog().
+				alertBuilder.setPositiveButton("Play", null);
+
+				// tell the builder we want a No button- don't worry, we setup
+				// its callback in onPrepareDialog().
+				alertBuilder.setNegativeButton("No Thanks", null);
+
+				// create the alert dialog.
+				dialog = alertBuilder.create();
+				break;
+			}
+				// create our determinate progress dialog. i.e. x out of 100.
+			case TourGuideStatics.DIALOG_PROGRESS:
+			{
+				// create a new progress dialog.
+				ProgressDialog progressDialog = new ProgressDialog(this.tourGuideActivity);
+
+				// set its style determinate with a horizontal progress bar.
+				progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+
+				// make it non-cancelable.
+				progressDialog.setCancelable(false);
+
+				// make sure it's not indeterminate(otherwise we get a progress bar that never fills in).
+				progressDialog.setIndeterminate(false);
+
+				// setup the text of our message- though we have to do it again in onPrepareDialog() anyway.
+				progressDialog.setMessage(args.getString(TourGuideStatics.KEY_TEXT));
+
+				// setup the progress we've made- though we have to do it again in onPrepareDialog() anyway.
+				progressDialog.setProgress(args.getInt(TourGuideStatics.KEY_PROGRESS));
+
+				// setup the total so android knows our precentage done- though we have to do it again in onPrepareDialog() anyway.
+				progressDialog.setMax(args.getInt(TourGuideStatics.KEY_MAX));
+
+				// set the dialog to return to our newly created progress dialog.
+				dialog = progressDialog;
+				break;
+			}
+				// create our indeterminate progress dialog.
+			case TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE:
+			{
+				// create a new progress dialog.
+				ProgressDialog progressDialog = new ProgressDialog(this.tourGuideActivity);
+
+				// set it to the spinner looking one(which is only indeterminate afaik).
+				progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+
+				// make it uncancelable.
+				progressDialog.setCancelable(false);
+
+				// make it indeterminate for good measure.
+				progressDialog.setIndeterminate(true);
+
+				// set the text- even though we have to do this in onPrepareDialog() again anyway.
+				progressDialog.setMessage(args.getString(TourGuideStatics.KEY_TEXT));
+
+				// set the dialog to return our newly created progress dialog.
+				dialog = progressDialog;
+				break;
+			}
+			default:
+			{
+				// WTF: who called this non-existent dialog?
+				dialog = null;
+			}
+		}
+
+		// return our newly created dialog.
+		return dialog;
+	}
+
+	/**
+	 * This method allows us to manage what happens when android creates our dialogs. We use it to set things like texts, buttons, etc. 
+	 * This version hackishly uses the pre-Android 2.2 API to create dynamic dialogs. We also implement the newer callback for Android
+	 * 2.2 and above.
+	 */
+	@Override
 	protected Dialog onCreateDialog(int id)
 	{
 		Dialog dialog;
@@ -479,11 +683,6 @@ public class TourGuideActivity extends MapActivity
 				// setup the total so android knows our precentage done- though we have to do it again in onPrepareDialog() anyway.
 				progressDialog.setMax(TourGuideStatics.DIALOG_PROGRESS_MAX);
 
-				// Android 2.2 stuff below:
-				// FIXME: progressDialog.setMessage(args.getString(TourGuideStatics.KEY_TEXT));
-				// FIXME: progressDialog.setProgress(args.getInt(TourGuideStatics.KEY_PROGRESS));
-				// FIXME: progressDialog.setMax(args.getInt(TourGuideStatics.KEY_MAX));
-
 				// set the dialog to return to our newly created progress dialog.
 				dialog = progressDialog;
 				break;
@@ -505,9 +704,6 @@ public class TourGuideActivity extends MapActivity
 
 				// set the text- even though we have to do this in onPrepareDialog() again anyway.
 				progressDialog.setMessage(TourGuideStatics.DIALOG_PROGRESS_TEXT);
-
-				// Android 2.2 stuff below:
-				// FIXME: progressDialog.setMessage(args.getString(TourGuideStatics.KEY_TEXT));
 
 				// set the dialog to return our newly created progress dialog.
 				dialog = progressDialog;
@@ -540,18 +736,83 @@ public class TourGuideActivity extends MapActivity
 			System.exit(0);
 		}
 	}
+	
+	/**
+	 * This method allows us to manage what happens after showDialog() is called. We use it to modify the text and some other things in our
+	 * dialogs. Using the Android 2.2 API, we pass arguments to this callback in order to implement dynamic dialogs.
+	 */
+	@Override
+	protected void onPrepareDialog(int id, Dialog dialog,  final Bundle args)
+	{
+		switch (id)
+		{
+			// if we are showing an exit dialog.
+			case TourGuideStatics.DIALOG_EXIT:
+			{
+				// just reset the message.
+				((AlertDialog) dialog).setMessage(args.getString(TourGuideStatics.KEY_TEXT));
+				break;
+			}
+				// if we are showing a blurb dialog.
+			case TourGuideStatics.DIALOG_BLURB:
+			{
+				// reset the message to say about the new location we are near.
+				((AlertDialog) dialog).setMessage("Near '" + args.getString(TourGuideStatics.KEY_LOCATION) + "'\nPlay blurb?");
+
+				// setup the code to run when the play button is clicked.
+				((AlertDialog) dialog).setButton("Play", new OnClickListener()
+				{
+					/**
+					 * code to run.
+					 */
+					@Override
+					public void onClick(DialogInterface arg0, int arg1)
+					{
+						try
+						{
+							// reset the media player associated with this activity and play the file.
+							TourGuideActivity.this.mediaPlayer.reset();
+							TourGuideActivity.this.mediaPlayer.setDataSource(new FileInputStream(TourGuideActivity.this.tourGuideActivity
+									.getFileStreamPath(args.getString(TourGuideStatics.KEY_FILE))).getFD());
+							TourGuideActivity.this.mediaPlayer.prepare();
+							TourGuideActivity.this.mediaPlayer.start();
+						}
+						catch (Exception e)
+						{
+							e.printStackTrace();
+						}
+					}
+				});
+				break;
+			}
+				// if we are showing a determinate progress dialog.
+			case TourGuideStatics.DIALOG_PROGRESS:
+			{
+				// reset the text.
+				((ProgressDialog) dialog).setMessage(args.getString(TourGuideStatics.KEY_TEXT));
+
+				// reset the progress.
+				((ProgressDialog) dialog).setProgress(args.getInt(TourGuideStatics.KEY_PROGRESS));
+
+				// reset the max
+				((ProgressDialog) dialog).setMax(args.getInt(TourGuideStatics.KEY_MAX));
+				break;
+			}
+				// if we are showing an indeterminate progress dialog.
+			case TourGuideStatics.DIALOG_PROGRESS_INDETERMINATE:
+			{
+				// set the text.
+				((ProgressDialog) dialog).setMessage(args.getString(TourGuideStatics.KEY_TEXT));
+				break;
+			}
+		}
+	}
 
 	/**
 	 * This method allows us to manage what happens after showDialog() is called. We use it to modify the text and some other things in our
-	 * dialogs. I.e. we have dynamic dialogs.
-	 * 
-	 * We current use a hack to create dynamic dialog text, etc because Android 2.1 and lower APIs have no way to give this guy information
-	 * to change the dialog. So instead we use static variables that are not thread safe.
-	 * 
-	 * Android 2.2. Solves this issue. This will be changed when I have access to a phone with API8.
+	 * dialogs. This is the pre-Android 2.2 callback which we implement for pre-Android 2.2 devices. It uses hack to implement dynamic dialogs.
 	 */
 	@Override
-	// FIXME: protected void onPrepareDialog(int id, Dialog dialog, Bundle args)
 	protected void onPrepareDialog(int id, Dialog dialog)
 	{
 		switch (id)
@@ -606,11 +867,6 @@ public class TourGuideActivity extends MapActivity
 
 				// reset the max
 				((ProgressDialog) dialog).setMax(TourGuideStatics.DIALOG_PROGRESS_MAX);
-
-				// Android 2.2 stuff below:
-				// FIXME: ((ProgressDialog) dialog).setMessage(args.getString(TourGuideStatics.KEY_TEXT));
-				// FIXME: ((ProgressDialog) dialog).setProgress(args.getInt(TourGuideStatics.KEY_PROGRESS));
-				// FIXME: ((ProgressDialog) dialog).setMax(args.getInt(TourGuideStatics.KEY_MAX));
 				break;
 			}
 				// if we are showing an indeterminate progress dialog.
@@ -618,9 +874,6 @@ public class TourGuideActivity extends MapActivity
 			{
 				// set the text.
 				((ProgressDialog) dialog).setMessage(TourGuideStatics.DIALOG_PROGRESS_TEXT);
-
-				// Android 2.2 stuff below:
-				// FIXME: ((ProgressDialog) dialog).setMessage(args.getString(TourGuideStatics.KEY_TEXT));
 				break;
 			}
 		}

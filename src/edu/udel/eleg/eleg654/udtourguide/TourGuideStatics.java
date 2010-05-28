@@ -68,7 +68,9 @@ final class TourGuideStatics
 	/**
 	 * Below is for the Android 2.2 API. We ideally want to uses these in the future.
 	 */
-	// FIXME: public static String KEY_TEXT = "text";
-	// FIXME: public static String KEY_PROGRESS = "progress";
-	// FIXME: public static String KEY_MAX = "max";
+	static String KEY_TEXT = "text";
+	static String KEY_PROGRESS = "progress";
+	static String KEY_MAX = "max";
+	static String KEY_LOCATION = "location";
+	static String KEY_FILE = "file";
 }
