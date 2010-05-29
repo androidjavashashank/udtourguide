@@ -1,4 +1,4 @@
-1) Remove 2.1 API and lower support when all devices support the higher API?
+1)Remove 2.1 API and lower support when all devices support the higher API?
 
 2)Animate to the current location differently(not in the Activity).
 
@@ -9,3 +9,7 @@
 5)Change collision detection to square or something else.
 
 6)Get real blurbs to be played bad.
+
+7)Implement location control that allows clicking.
+
+8)Make sound louder?
