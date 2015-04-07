@@ -1,0 +1,5 @@
+UDTourGuide uses GPS to provide audio descriptions of nearby points of interest and a map of the surround area with points of interests marked. The current version provides this functionality via the Skyhook and Google Maps APIs.
+
+A database of points of interest and corresponding sound files are downloaded on the initial start up. After the initial start up, future updates can be retrieved if the user desires at the start of the application.
+
+This application was written as a class project for a wireless sensor networks course I took a the University of Delaware. It was designed to be a proof-of-concept of an electronic tour-guide for visitors. Unfortunately at the time of this writing the application doesn't contain speech for any points of interest. However, these could be added simply by modifying the database.
